@@ -1,0 +1,18 @@
+<resources>
+    <string name="server_title">Mit deinem Cairn verbinden</string>
+    <string name="server_url_label">Server-URL</string>
+    <string name="server_continue">Weiter</string>
+    <string name="server_checking">Server wird geprüft…</string>
+    <string name="server_unreachable">Dieser Server ist nicht erreichbar.</string>
+    <string name="login_with_browser">Im Browser anmelden</string>
+    <string name="login_with_token">Persönliches Zugriffstoken verwenden</string>
+    <string name="login_token_label">Persönliches Zugriffstoken</string>
+    <string name="login_failed">Anmeldung fehlgeschlagen.</string>
+    <string name="signed_in_as">Angemeldet als %1$s</string>
+    <string name="sign_out">Abmelden</string>
+    <string name="offline">Offline, zwischengespeicherte Daten</string>
+    <string name="retry">Erneut versuchen</string>
+    <string name="nav_overview">Übersicht</string>
+    <string name="nav_activities">Aktivitäten</string>
+    <string name="nav_settings">Einstellungen</string>
+</resources>

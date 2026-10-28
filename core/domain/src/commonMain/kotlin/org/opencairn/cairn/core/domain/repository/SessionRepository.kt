@@ -1,0 +1,26 @@
+package org.opencairn.cairn.core.domain.repository
+
+import kotlinx.coroutines.flow.Flow
+import org.opencairn.cairn.core.domain.model.AccountKey
+import org.opencairn.cairn.core.domain.model.Server
+import org.opencairn.cairn.core.domain.model.User
+
+/** Sign-in state across app restarts. Implemented in core/auth. */
+interface SessionRepository {
+    /** Null while signed out. */
+    val activeAccount: Flow<AccountKey?>
+    val currentUser: Flow<User?>
+
+    suspend fun discoverServer(baseUrl: String): Result<Server>
+
+    suspend fun signIn(server: Server): Result<User>
+
+    suspend fun signInWithToken(
+        server: Server,
+        token: String,
+    ): Result<User>
+
+    suspend fun refreshCurrentUser(): Result<User>
+
+    suspend fun signOut()
+}

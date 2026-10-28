@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">Cairn</string>
+    <string name="server_title">Connect to your Cairn</string>
+    <string name="server_url_label">Server URL</string>
+    <string name="server_url_hint">https://cairn.example.org</string>
+    <string name="server_continue">Continue</string>
+    <string name="server_checking">Checking server…</string>
+    <string name="server_unreachable">Could not reach this server.</string>
+    <string name="server_version">cairn-core %1$s</string>
+    <string name="login_with_browser">Sign in with your browser</string>
+    <string name="login_with_token">Use a personal access token</string>
+    <string name="login_token_label">Personal access token</string>
+    <string name="login_failed">Sign-in failed.</string>
+    <string name="signed_in_as">Signed in as %1$s</string>
+    <string name="sign_out">Sign out</string>
+    <string name="offline">Offline, showing cached data</string>
+    <string name="retry">Retry</string>
+    <string name="nav_overview">Overview</string>
+    <string name="nav_activities">Activities</string>
+    <string name="nav_settings">Settings</string>
+</resources>

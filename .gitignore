@@ -1,0 +1,18 @@
+# Gradle and IDE output
+.gradle/
+build/
+**/build/
+.kotlin/
+*.iml
+.idea/*
+!.idea/codeStyles/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+.DS_Store
+# Reports written by the gates
+reports/
+# Secrets never live here
+*.keystore
+*.jks

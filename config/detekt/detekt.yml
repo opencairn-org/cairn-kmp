@@ -1,0 +1,47 @@
+# detekt 2 configuration; builds upon the default config (buildUponDefaultConfig = true).
+style:
+  MagicNumber:
+    active: false
+  ReturnCount:
+    max: 3
+  MaxLineLength:
+    maxLineLength: 120
+  ForbiddenComment:
+    active: true
+    comments:
+      - reason: "Track work in the issue tracker, not in comments."
+        value: "FIXME:"
+
+complexity:
+  LongParameterList:
+    allowedFunctionParameters: 8
+    allowedConstructorParameters: 10
+    ignoreDefaultParameters: true
+  TooManyFunctions:
+    allowedFunctionsPerClass: 20
+    allowedFunctionsPerInterface: 20
+    allowedFunctionsPerObject: 20
+    ignorePrivate: true
+  LongMethod:
+    active: true
+    allowedLines: 50
+  CognitiveComplexMethod:
+    active: true
+    allowedComplexity: 15
+
+naming:
+  FunctionNaming:
+    # Composable functions are PascalCase.
+    ignoreAnnotated: ["Composable"]
+  TopLevelPropertyNaming:
+    active: false
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: true
+  SwallowedException:
+    active: true
+
+empty-blocks:
+  EmptyCatchBlock:
+    active: true

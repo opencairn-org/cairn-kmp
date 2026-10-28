@@ -1,0 +1,10 @@
+{
+  "threshold": 2,
+  "minTokens": 70,
+  "minLines": 8,
+  "format": ["kotlin"],
+  "ignore": ["**/build/**", "**/generated/**", "**/.gradle/**", "**/node_modules/**"],
+  "reporters": ["console"],
+  "gitignore": true,
+  "exitCode": 1
+}

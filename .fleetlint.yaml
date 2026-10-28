@@ -1,0 +1,13 @@
+# .fleetlint.yaml: https://github.com/fleetlint/fleetlint
+version: 1
+extends:
+  - fleetlint:recommended
+facts:
+  visibility: public
+  tier: 1
+# One Gradle build, one project: the modules are not separate projects.
+scopes: []
+overrides:
+  changelog/generator-configured:
+    enabled: false
+    reason: "CHANGELOG.md is curated by hand (Keep a Changelog); `make release` refuses a tag without its section"

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    "customManagers:makefileVersions",
+    "customManagers:githubActionsVersions"
+  ],
+  "automerge": true,
+  "platformAutomerge": false,
+  "lockFileMaintenance": { "enabled": true },
+  "labels": ["dependencies"],
+  "rebaseWhen": "behind-base-branch",
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 0,
+  "minimumReleaseAge": "3 days",
+  "internalChecksFilter": "strict",
+  "pre-commit": { "enabled": true },
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": { "labels": ["security"] },
+  "packageRules": [
+    {
+      "description": "Kotlin, the Compose compiler and Metro are compiler plugins that must match; bump together and never automerge.",
+      "matchPackageNames": ["/^org\\.jetbrains\\.kotlin/", "/^dev\\.zacsweers\\.metro/", "/^org\\.jetbrains\\.compose/"],
+      "groupName": "kotlin toolchain",
+      "automerge": false,
+      "addLabels": ["needs-migration"]
+    },
+    {
+      "description": "Gradle plugin and library minors/patches as one PR.",
+      "matchManagers": ["gradle"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "gradle dependencies (non-major)"
+    },
+    {
+      "description": "Majors change APIs; review by hand.",
+      "matchManagers": ["gradle"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "addLabels": ["needs-migration"]
+    },
+    {
+      "description": "Pre-releases are opted into per library in the catalog, never by Renovate.",
+      "matchManagers": ["gradle"],
+      "ignoreUnstable": true
+    }
+  ]
+}
