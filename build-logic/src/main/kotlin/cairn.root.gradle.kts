@@ -26,9 +26,14 @@ allprojects {
     }
     // Tool classpaths pinned by their plugins (AGP's lint tool, Kotlin's Swift export) never ship
     // and are not ours to fix, so they stay out of the lock state and the osv-scanner results.
-    configurations.matching { it.name.startsWith("androidLintTool") || it.name.startsWith("swiftExport") }.configureEach {
-        resolutionStrategy.deactivateDependencyLocking()
-    }
+    configurations
+        .matching {
+            it.name.startsWith(
+                "androidLintTool",
+            ) || it.name.startsWith("swiftExport")
+        }.configureEach {
+            resolutionStrategy.deactivateDependencyLocking()
+        }
     // `./gradlew resolveAndLockAll --write-locks` (make update-locks) resolves every resolvable
     // configuration so the lock state covers all of them, per project.
     tasks.register("resolveAndLockAll") {

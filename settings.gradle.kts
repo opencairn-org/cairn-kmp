@@ -36,7 +36,11 @@ rootProject.name = "cairn"
 include(
     ":core:common",
     ":core:domain",
+    ":core:network",
+    ":core:database",
+    ":core:auth",
     ":ui:design",
+    ":feature:login",
     ":app:shared",
     ":app:android",
     ":app:desktop",

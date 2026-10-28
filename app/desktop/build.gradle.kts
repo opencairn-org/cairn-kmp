@@ -22,6 +22,9 @@ kotlin {
 
 dependencies {
     api(projects.app.shared)
+    implementation(projects.core.auth)
+    implementation(projects.core.database)
+    implementation(libs.oidc.appsupport)
     implementation(compose.desktop.currentOs)
     runtimeOnly(libs.kotlinx.coroutines.swing)
 }

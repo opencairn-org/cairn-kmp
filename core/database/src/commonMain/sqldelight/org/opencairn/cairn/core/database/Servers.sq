@@ -1,0 +1,26 @@
+-- Known cairn-core instances and the OAuth client registered on each.
+-- No UPSERT: Android 8 ships SQLite 3.18; callers run insertOrIgnore + update in a transaction.
+CREATE TABLE server (
+  base_url TEXT NOT NULL PRIMARY KEY,
+  version TEXT,
+  federation_enabled INTEGER NOT NULL DEFAULT 0,
+  oauth_enabled INTEGER NOT NULL DEFAULT 1,
+  oauth_client_id TEXT,
+  last_seen_at INTEGER NOT NULL
+);
+
+insertOrIgnore:
+INSERT OR IGNORE INTO server(base_url, version, federation_enabled, oauth_enabled, oauth_client_id, last_seen_at)
+VALUES (?, ?, ?, ?, ?, ?);
+
+updateInfo:
+UPDATE server SET version = ?, federation_enabled = ?, oauth_enabled = ?, last_seen_at = ? WHERE base_url = ?;
+
+setClientId:
+UPDATE server SET oauth_client_id = ? WHERE base_url = ?;
+
+byUrl:
+SELECT * FROM server WHERE base_url = ?;
+
+all:
+SELECT * FROM server ORDER BY last_seen_at DESC;

@@ -1,0 +1,49 @@
+-- Signed-in accounts (server + user) with the cached current user; tokens live in the SecretStore.
+CREATE TABLE account (
+  server_base_url TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  auth_kind TEXT NOT NULL,            -- oauth | pat
+  username TEXT NOT NULL,
+  email TEXT NOT NULL,
+  display_name TEXT NOT NULL,
+  avatar_url TEXT,
+  role TEXT NOT NULL,
+  units TEXT NOT NULL,
+  date_format TEXT NOT NULL,
+  time_format TEXT NOT NULL,
+  locale TEXT NOT NULL,
+  timezone TEXT NOT NULL,
+  permissions TEXT NOT NULL,          -- comma separated
+  created_at INTEGER,
+  is_active INTEGER NOT NULL DEFAULT 0,
+  updated_at INTEGER NOT NULL,
+  PRIMARY KEY (server_base_url, user_id)
+);
+
+insertOrIgnore:
+INSERT OR IGNORE INTO account(server_base_url, user_id, auth_kind, username, email, display_name, avatar_url, role, units,
+  date_format, time_format, locale, timezone, permissions, created_at, is_active, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?);
+
+updateUser:
+UPDATE account SET auth_kind = ?, username = ?, email = ?, display_name = ?, avatar_url = ?, role = ?, units = ?,
+  date_format = ?, time_format = ?, locale = ?, timezone = ?, permissions = ?, created_at = ?, updated_at = ?
+WHERE server_base_url = ? AND user_id = ?;
+
+clearActive:
+UPDATE account SET is_active = 0;
+
+setActive:
+UPDATE account SET is_active = 1 WHERE server_base_url = ? AND user_id = ?;
+
+active:
+SELECT * FROM account WHERE is_active = 1 LIMIT 1;
+
+byKey:
+SELECT * FROM account WHERE server_base_url = ? AND user_id = ?;
+
+all:
+SELECT * FROM account ORDER BY updated_at DESC;
+
+delete:
+DELETE FROM account WHERE server_base_url = ? AND user_id = ?;

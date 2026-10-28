@@ -13,6 +13,8 @@ android {
         applicationId = "org.opencairn.cairn"
         versionCode = (project.findProperty("cairn.versionCode") as String?)?.toInt() ?: 1
         versionName = (project.findProperty("cairn.versionName") as String?) ?: "0.1.0-dev"
+        // Custom-scheme redirect for the OAuth browser flow (kotlin-multiplatform-oidc's HandleRedirectActivity).
+        addManifestPlaceholders(mapOf("oidcRedirectScheme" to "org.opencairn.cairn"))
     }
     // Distribution channel baked in so the update check knows where the build came from.
     flavorDimensions += "distribution"
@@ -58,6 +60,9 @@ android {
 
 dependencies {
     implementation(projects.app.shared)
+    implementation(projects.core.auth)
+    implementation(projects.core.database)
+    implementation(libs.oidc.appsupport)
     implementation(libs.androidx.activity.compose)
     runtimeOnly(libs.kotlinx.coroutines.android)
 }

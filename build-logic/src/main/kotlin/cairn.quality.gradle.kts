@@ -15,6 +15,7 @@ spotless {
         ktlint(catalog.version("ktlint")).editorConfigOverride(
             mapOf(
                 "ktlint_function_naming_ignore_when_annotated_with" to "Composable",
+                "max_line_length" to "120",
                 "ktlint_compose" to "enabled",
             ),
         )

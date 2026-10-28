@@ -71,22 +71,34 @@ comment on every field (buf lint `STANDARD` already applies).
 
 (RPC-by-RPC specification follows in section "RPC specifications"; this list is the scope.)
 
-- `ActivityService.GetOverview`, `ListHomeFeed`
-- `ActivityService.ListActivities` extended to the feed's filter set and facets (or a new
-  `SearchActivities`)
-- `ActivityService.ListLaps`, `GetActivityZones`, `ListActivitySegmentEfforts`,
+- DONE (core `feat/transport-instance-auth`): `StatsService.GetOverview`,
+  `SocialService.ListHomeFeed`, `ActivityService.SearchActivities` (new RPC; `ListActivities`
+  stays the simple list). Cursors are opaque offsets for now (the feed repos page by offset);
+  a keyset cursor follows when the repos support it.
+- DONE: `ActivityService.ListLaps`, `GetActivityZones`, `ListActivitySegmentEfforts`,
   `ListSimilarActivities`, `GetMergedStream`, `ListAttachments`, `ListKudos`, `ListComments`,
   `GetActivityManageInfo`, `GetParsedSource`, `GetExportOptions`, `ExportActivity`
-- `ActivityService.GetActivityMapImage` or map image URLs on `Activity`
-- Signed URLs for all binary content (see "Binary content")
+  (`ActivitySegmentEffort.climb_category` is the stored string, not the enum: activity.proto
+  cannot import segment.proto without a cycle)
+- DONE: `ActivityService.GetActivityMapImage` and `Activity.map_image` / `map_image_etag`
+- DONE: signed URLs for all binary content (see "Binary content")
+
+H2 is complete on core branch `feat/transport-instance-auth`.
 
 ## H3. Before client Phase 3 (analytics, segments, health)
 
-- `ActivityService.GetStats`, `GetTrainingLoad`, `GetBestEffortHistory`, `GetHeatmap`
-  (`ListRecords` DONE on core `feat/activity-service-parity`, activity_type + metrics filters;
-  discipline/time_range are refused with InvalidArgument until the repo supports them)
-- Mount `SegmentService` (`ListSegments`, `GetSegment`, `ListSegmentEfforts` at least)
-- Mount `MetricsService` (`ListMetrics`, `GetUserContext`) and `SettingsService`
+- DONE (core `feat/transport-instance-auth`): `StatsService.GetStats`, `GetTrainingLoad`,
+  `GetBestEffortHistory`, `GetHeatmap` (encoded polylines); `ListRecords` (activity_type +
+  metrics filters; discipline/time_range refused with InvalidArgument until the repo supports
+  them)
+- DONE: `SegmentService` mounted with `ListMySegments` (new RPC: the user-centric row of
+  `/api/segments`; `ListSegmentsResponse` could not change shape), `GetSegment` (viewer's efforts
+  as `top_efforts`), `ListMySegmentEfforts`. Authoring/leaderboard RPCs stay planned.
+- DONE: `MetricsService` mounted (`ListMetrics` one key at a time, `ListHealthSeries`,
+  `ListAthleteMetrics` + upsert/delete); `GetUserContext`/series/bulk RPCs stay planned.
+  `SettingsService` mounted over the merge policies (the only stored settings section).
+
+H3 is complete on core branch `feat/transport-instance-auth`.
 
 ## H4. Before client Phase 4 (account, social, sync status)
 
@@ -546,8 +558,8 @@ as documentation first and enforcement in a minor release with a CHANGELOG note.
 - [x] H0.4 every Unimplemented RPC is commented as planned or browser-only (decision: none deleted)
 - [ ] H0.5 read paths moved out of `package main`
 - [x] H1 GetInstanceInfo, loopback redirect ports, DCR metadata, scope docs + new scopes, Logout, Register, GetQuota (core `feat/transport-instance-auth`)
-- [ ] H2 ActivityService reads + SearchActivities + StatsService.GetOverview + ListHomeFeed (DONE: signed content incl. public blob endpoint, map images, photo variants, exports; ListAttachments, GetActivityMapImage, GetExportOptions, ExportActivity, Activity.map_image)
-- [ ] H3 GetStats, GetTrainingLoad, ListRecords, GetBestEffortHistory, GetHeatmap, SegmentService, MetricsService
+- [x] H2 ActivityService reads + SearchActivities + StatsService.GetOverview + ListHomeFeed + signed content (core `feat/transport-instance-auth`)
+- [x] H3 GetStats, GetTrainingLoad, ListRecords, GetBestEffortHistory, GetHeatmap, SegmentService, MetricsService, SettingsService (core `feat/transport-instance-auth`)
 - [ ] H4 CountUnread, StreamNotifications, ExternalAccountService, SocialService, GetQuota
 - [ ] H5 StreamActivityEvents, authorized-apps page, buf push
 - [ ] Each group: CHANGELOG entry, `buf breaking` green, docs page for the scope table, release tag the client README can pin

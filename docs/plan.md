@@ -7,7 +7,7 @@ The client talks proto RPCs only. Each of Phases 2 to 4 needs the matching core 
 [handover.md](handover.md) (H2, H3, H4); the client work for a phase can start against a core
 branch, but the phase is only done against a released core.
 
-## Phase 0: repository bootstrap and fleetlint (1 to 2 days)
+## Phase 0: repository bootstrap and fleetlint (done 2026-10-28)
 
 Goal: an empty but fully gated KMP repository that builds "hello cairn" on Android, desktop and
 iOS (simulator framework), with the same hygiene as cairn-core from the first commit.
@@ -49,13 +49,15 @@ Exit criteria: `make check` green locally and in CI; `fleetlint check` 0 errors 
 Android debug APK installs and shows the placeholder; desktop `run` works; iOS framework builds
 on the macOS runner.
 
-## Phase 1: foundation, login, first server round trip (1 week)
+## Phase 1: foundation, login, first server round trip (code complete 2026-10-28; end-to-end login against a running core still to verify)
 
 Goal: log in to a cairn-core instance with OAuth 2.1 + PKCE, see "signed in as <user>", survive
 app restart offline.
 
-1. `proto/` vendoring: `scripts/sync-proto.sh <tag>` copies `cairn-core/api/proto/cairn/v1`,
-   writes `PROTO_VERSION`; `make proto-check` diffs against the tag. Wire plugin generates into
+1. `proto/` vendoring: `scripts/sync-proto.sh <ref>` copies `cairn-core/api/proto/cairn/v1`,
+   writes `PROTO_VERSION`; `make proto-check` diffs against the ref. Until core tags the handover
+   releases, the ref is core's `feat/transport-instance-auth` branch (`CAIRN_CORE_REPO` may point
+   at a local checkout); the pin moves to a tag at the first client release. Wire plugin generates into
    `core/network` `commonMain` (messages + service interfaces for the eight `cairn.v1` services).
 2. `ConnectGrpcClient` (Wire `GrpcClient` over Ktor): unary POST, binary proto, headers, error
    JSON → `ConnectException(code, message, details)`, timeout, cancellation, HTTP/2 via the

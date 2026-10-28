@@ -10,7 +10,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        val graph = (application as CairnApplication).graph
-        setContent { CairnApp(graph) }
+        val app = application as CairnApplication
+        app.authFlowFactory.registerActivity(this)
+        setContent { CairnApp(app.graph) }
     }
 }
