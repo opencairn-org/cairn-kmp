@@ -35,7 +35,7 @@ fmt: ## format in place (Spotless: ktlint for Kotlin, build scripts, config file
 .PHONY: lint
 lint: ## format check + detekt + dependency health, warnings as errors
 	$(GRADLE) $(GRADLE_FLAGS) spotlessCheck detekt buildHealth
-	jscpd --config config/jscpd.json
+	jscpd --config config/jscpd.json --ignore-pattern '^\s*import .*$$'
 
 .PHONY: test
 test: ## unit tests on the JVM targets (common code runs there)

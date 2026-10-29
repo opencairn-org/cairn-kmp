@@ -1,0 +1,88 @@
+-- Offline-first cache, scoped by account (AccountKey.storageId). Rows hold the wire proto so the
+-- mapping to domain happens in one place (core/data); indexed columns serve the list screens.
+
+CREATE TABLE activity (
+  account TEXT NOT NULL,
+  id TEXT NOT NULL,
+  start_time INTEGER NOT NULL,
+  type TEXT NOT NULL,
+  discipline TEXT NOT NULL,
+  title TEXT NOT NULL,
+  proto BLOB NOT NULL,
+  updated_at INTEGER,
+  fetched_at INTEGER NOT NULL,
+  PRIMARY KEY (account, id)
+);
+
+CREATE INDEX activity_start_time ON activity(account, start_time DESC);
+
+-- A search result set (SearchActivities) for one filter+sort, in server order.
+CREATE TABLE search_result (
+  account TEXT NOT NULL,
+  query_hash TEXT NOT NULL,
+  position INTEGER NOT NULL,
+  activity_id TEXT NOT NULL,
+  PRIMARY KEY (account, query_hash, position)
+);
+
+CREATE TABLE search_meta (
+  account TEXT NOT NULL,
+  query_hash TEXT NOT NULL,
+  facets BLOB NOT NULL,
+  total INTEGER NOT NULL,
+  matched INTEGER NOT NULL,
+  next_cursor TEXT NOT NULL,
+  fetched_at INTEGER NOT NULL,
+  PRIMARY KEY (account, query_hash)
+);
+
+-- Any other server response kept whole: overview, home feed, best efforts, attachments, streams.
+CREATE TABLE snapshot (
+  account TEXT NOT NULL,
+  key TEXT NOT NULL,
+  bytes BLOB NOT NULL,
+  fetched_at INTEGER NOT NULL,
+  PRIMARY KEY (account, key)
+);
+
+upsertActivity:
+INSERT OR REPLACE INTO activity(account, id, start_time, type, discipline, title, proto, updated_at, fetched_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+activityById:
+SELECT * FROM activity WHERE account = ? AND id = ?;
+
+searchPage:
+SELECT a.* FROM search_result r
+JOIN activity a ON a.account = r.account AND a.id = r.activity_id
+WHERE r.account = ? AND r.query_hash = ?
+ORDER BY r.position;
+
+searchMeta:
+SELECT * FROM search_meta WHERE account = ? AND query_hash = ?;
+
+clearSearch:
+DELETE FROM search_result WHERE account = ? AND query_hash = ?;
+
+searchCount:
+SELECT COUNT(*) FROM search_result WHERE account = ? AND query_hash = ?;
+
+insertSearchResult:
+INSERT OR REPLACE INTO search_result(account, query_hash, position, activity_id) VALUES (?, ?, ?, ?);
+
+upsertSearchMeta:
+INSERT OR REPLACE INTO search_meta(account, query_hash, facets, total, matched, next_cursor, fetched_at)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+upsertSnapshot:
+INSERT OR REPLACE INTO snapshot(account, key, bytes, fetched_at) VALUES (?, ?, ?, ?);
+
+snapshotByKey:
+SELECT * FROM snapshot WHERE account = ? AND key = ?;
+
+deleteAccountCache {
+  DELETE FROM activity WHERE account = ?;
+  DELETE FROM search_result WHERE account = ?;
+  DELETE FROM search_meta WHERE account = ?;
+  DELETE FROM snapshot WHERE account = ?;
+}

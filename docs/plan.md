@@ -86,7 +86,7 @@ Exit criteria: login works on Android, desktop and iOS simulator against a local
 the app and restarting offline shows the cached user; token refresh and revoked-token paths are
 covered by tests; coverage floor set (start at 60 on `core/*`).
 
-## Phase 2: activities, the core viewing experience (2 to 3 weeks)
+## Phase 2: activities, the core viewing experience (in progress; list, overview, detail basics done 2026-10-28)
 
 Goal: parity with `/`, `/activities`, `/activities/[id]` and its subpages. Needs core H2.
 

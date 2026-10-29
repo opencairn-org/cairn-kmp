@@ -102,12 +102,23 @@ H3 is complete on core branch `feat/transport-instance-auth`.
 
 ## H4. Before client Phase 4 (account, social, sync status)
 
-- `NotificationService.CountUnread` (declared), `StreamNotifications` (declared; needs H0.2)
-- Mount `ExternalAccountService`; add `GetSyncStatus`, `ListSyncHistory`, `ListQueueItems`
-- New `SocialService`: `ListFollowingFeed`, `ListClubs`, `GetClub`, `ListClubFeed`,
+- DONE (core `feat/transport-instance-auth`): `NotificationService.CountUnreadNotifications`,
+  `StreamNotifications` (events after open + 30 s heartbeat = event with empty id)
+- DONE: `ExternalAccountService` mounted; the sync status lives on `ExternalAccount` itself
+  (fields 21–32, no separate `GetSyncStatus`), plus `ListConnections`, `ListSyncHistory`,
+  `ListQueueItems`, `UpdateExternalAccountConfig`, `SetExternalAccountEnabled`, `TriggerSync`.
+  Linking/re-authorizing an account stays the browser OAuth flow (REST).
+- DONE: `SocialService` `ListFollowingFeed`, `ListClubs`, `GetClub`, `ListClubFeed`,
   `ListClubMembers`, `GetProfile`, `GetProjectedActivity`, `GetSharedActivity` (public),
   `ListReviewQueue`
-- `AuthService.GetQuota`
+- DONE: `AuthService.GetQuota` (with H1)
+- DONE: `AuthService` account RPCs (PATs create/list/revoke, `ChangePassword`,
+  `RequestPasswordReset`, `ConfirmPasswordReset` (no session in the response, sign in again),
+  `ListSessions`/`RevokeSession` (`is_current` marks the cookie session, bearer callers see none
+  as current), `ListLinkedIdentities`/`UnlinkOIDCIdentity` (last sign-in method refused with
+  FailedPrecondition), `UpdateProfile` (`field_mask` of display_name/avatar_url/locale/
+  timezone/units; `email` refused with InvalidArgument). Still browser-only: `LoginPassword`,
+  `Complete2FA`, `StartOIDCLogin`, `StartOIDCLink` (OAuth 2.1 PKCE for native clients).
 
 ## H5. Later
 
@@ -560,6 +571,7 @@ as documentation first and enforcement in a minor release with a CHANGELOG note.
 - [x] H1 GetInstanceInfo, loopback redirect ports, DCR metadata, scope docs + new scopes, Logout, Register, GetQuota (core `feat/transport-instance-auth`)
 - [x] H2 ActivityService reads + SearchActivities + StatsService.GetOverview + ListHomeFeed + signed content (core `feat/transport-instance-auth`)
 - [x] H3 GetStats, GetTrainingLoad, ListRecords, GetBestEffortHistory, GetHeatmap, SegmentService, MetricsService, SettingsService (core `feat/transport-instance-auth`)
-- [ ] H4 CountUnread, StreamNotifications, ExternalAccountService, SocialService, GetQuota
+- [x] H4 CountUnread, StreamNotifications, ExternalAccountService, SocialService, GetQuota,
+      AuthService account RPCs (core `feat/transport-instance-auth`)
 - [ ] H5 StreamActivityEvents, authorized-apps page, buf push
 - [ ] Each group: CHANGELOG entry, `buf breaking` green, docs page for the scope table, release tag the client README can pin

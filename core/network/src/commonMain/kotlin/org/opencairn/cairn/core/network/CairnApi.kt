@@ -9,9 +9,13 @@ import cairn.v1.GrpcGearServiceClient
 import cairn.v1.GrpcMetricsServiceClient
 import cairn.v1.GrpcNotificationServiceClient
 import cairn.v1.GrpcSegmentServiceClient
+import cairn.v1.GrpcSocialServiceClient
+import cairn.v1.GrpcStatsServiceClient
 import cairn.v1.MetricsServiceClient
 import cairn.v1.NotificationServiceClient
 import cairn.v1.SegmentServiceClient
+import cairn.v1.SocialServiceClient
+import cairn.v1.StatsServiceClient
 import com.squareup.wire.GrpcClient
 import io.ktor.client.HttpClient
 import org.opencairn.cairn.core.network.connect.ConnectGrpcClient
@@ -28,6 +32,8 @@ class CairnApi(
     val notifications: NotificationServiceClient by lazy { GrpcNotificationServiceClient(grpc) }
     val segments: SegmentServiceClient by lazy { GrpcSegmentServiceClient(grpc) }
     val metrics: MetricsServiceClient by lazy { GrpcMetricsServiceClient(grpc) }
+    val stats: StatsServiceClient by lazy { GrpcStatsServiceClient(grpc) }
+    val social: SocialServiceClient by lazy { GrpcSocialServiceClient(grpc) }
 
     companion object {
         fun connect(

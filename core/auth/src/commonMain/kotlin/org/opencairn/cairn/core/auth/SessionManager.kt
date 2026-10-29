@@ -76,6 +76,9 @@ class SessionManager(
             .mapToOneOrNull(dispatchers.io)
             .map { it?.toDomain() }
 
+    /** The active account, or null when signed out. */
+    suspend fun activeAccountKey(): AccountKey? = activeKey()
+
     /** The API bound to the active account's server and credentials. */
     suspend fun api(): CairnApi {
         val key = activeKey() ?: throw AppError.Unauthenticated()

@@ -10,9 +10,14 @@ import org.opencairn.cairn.core.auth.AuthPlatform
 import org.opencairn.cairn.core.auth.SessionManager
 import org.opencairn.cairn.core.common.DefaultDispatcherProvider
 import org.opencairn.cairn.core.common.DispatcherProvider
+import org.opencairn.cairn.core.data.ActivityRepositoryImpl
+import org.opencairn.cairn.core.data.CacheScope
+import org.opencairn.cairn.core.data.OverviewRepositoryImpl
 import org.opencairn.cairn.core.database.CairnDb
 import org.opencairn.cairn.core.database.DatabaseDriverFactory
 import org.opencairn.cairn.core.database.appDatabase
+import org.opencairn.cairn.core.domain.repository.ActivityRepository
+import org.opencairn.cairn.core.domain.repository.OverviewRepository
 import org.opencairn.cairn.core.domain.repository.SessionRepository
 
 /** What each platform entry point hands to the shared graph. */
@@ -22,13 +27,16 @@ interface PlatformContext {
     val authPlatform: AuthPlatform
 }
 
-/** Process-wide graph; account-scoped children hang off it once an account is active. */
+/** Process-wide graph: one HttpClient, one database, one session; repositories scope their cache by account. */
 @DependencyGraph(AppScope::class)
 interface AppGraph {
     val dispatchers: DispatcherProvider
     val platform: PlatformContext
+    val httpClient: HttpClient
     val session: SessionManager
     val sessionRepository: SessionRepository
+    val activityRepository: ActivityRepository
+    val overviewRepository: OverviewRepository
 
     @DependencyGraph.Factory
     fun interface Factory {
@@ -67,4 +75,24 @@ interface AppGraph {
 
     @Provides
     fun provideSessionRepository(session: SessionManager): SessionRepository = session
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun provideCacheScope(session: SessionManager): CacheScope = CacheScope(session)
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun provideActivityRepository(
+        db: CairnDb,
+        scope: CacheScope,
+        dispatchers: DispatcherProvider,
+    ): ActivityRepository = ActivityRepositoryImpl(db, scope, dispatchers)
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun provideOverviewRepository(
+        db: CairnDb,
+        scope: CacheScope,
+        dispatchers: DispatcherProvider,
+    ): OverviewRepository = OverviewRepositoryImpl(db, scope, dispatchers)
 }

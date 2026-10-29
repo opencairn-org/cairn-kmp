@@ -18,3 +18,11 @@ Before 1.0.0 a minor bump may contain breaking changes.
   authorization code + PKCE in the system browser, personal-access-token fallback, token
   refresh with rotation, sign-out with revocation; tokens in Keychain / Keystore-encrypted
   preferences / a 0600 file; accounts and servers in SQLDelight.
+- Overview (lifetime totals, this and last week, home feed with Mine/Friends/Federated chips),
+  activity list with facets, date presets, flags, sort and cursor paging, and the activity
+  detail page (header, badges, gear, primary and secondary stats, static map, photos, best
+  efforts, description, sources). Everything renders from the local cache first and refreshes
+  from the server (`SearchActivities`, `GetActivity`, `ListBestEfforts`, `ListAttachments`,
+  `StatsService.GetOverview`, `SocialService.ListHomeFeed`).
+- App shell: bottom navigation (Overview, Activities, Settings) on Navigation 3, settings with
+  account and server information and sign-out.

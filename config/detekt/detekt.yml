@@ -22,12 +22,20 @@ complexity:
     allowedFunctionsPerInterface: 20
     allowedFunctionsPerObject: 20
     ignorePrivate: true
+  # Composable screens are declarative trees, not control flow; size/complexity limits apply to logic.
   LongMethod:
     active: true
     allowedLines: 50
+    ignoreAnnotated: ["Composable"]
   CognitiveComplexMethod:
     active: true
     allowedComplexity: 15
+    ignoreAnnotated: ["Composable"]
+  CyclomaticComplexMethod:
+    active: true
+    ignoreAnnotated: ["Composable"]
+    # enum/proto mappings are one `when` with a branch per value, not logic
+    ignoreSimpleWhenEntries: true
 
 naming:
   FunctionNaming:
