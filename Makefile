@@ -62,6 +62,10 @@ build: ## debug APK for the GitHub flavor + desktop jar (release packaging is in
 build-release: ## unsigned release APK (CI signs with CAIRN_KEYSTORE_* in the environment)
 	$(GRADLE) $(GRADLE_FLAGS) :app:android:assembleGithubRelease
 
+.PHONY: e2e
+e2e: ## end-to-end against a running cairn-core: make e2e CAIRN_E2E_BASE_URL=http://localhost:8080 CAIRN_E2E_TOKEN=cairn_pat_…
+	CAIRN_E2E_BASE_URL="$(CAIRN_E2E_BASE_URL)" CAIRN_E2E_TOKEN="$(CAIRN_E2E_TOKEN)" $(GRADLE) $(GRADLE_FLAGS) :app:desktop:test --rerun -i 2>&1 | grep -E "^(server |signed in|overview|home feed|rides|detail|skipped)|BUILD|FAILED|Exception" | head -40
+
 .PHONY: desktop
 desktop: ## run the desktop app
 	$(GRADLE) $(GRADLE_FLAGS) :app:desktop:run
