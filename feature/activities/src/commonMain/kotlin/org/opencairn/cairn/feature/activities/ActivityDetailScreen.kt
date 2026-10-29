@@ -1,11 +1,13 @@
 package org.opencairn.cairn.feature.activities
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +18,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -33,6 +36,8 @@ import org.opencairn.cairn.core.domain.model.BestEffortMetric
 import org.opencairn.cairn.core.domain.model.BestEffortWindowKind
 import org.opencairn.cairn.core.domain.model.Meters
 import org.opencairn.cairn.core.domain.model.MetersPerSecond
+import org.opencairn.cairn.core.domain.model.Units
+import org.opencairn.cairn.ui.charts.StreamCharts
 import org.opencairn.cairn.ui.design.components.LoadingBox
 import org.opencairn.cairn.ui.design.components.SportIcon
 import org.opencairn.cairn.ui.design.components.StaleBanner
@@ -58,9 +63,11 @@ import org.opencairn.cairn.ui.design.resources.detail_distance
 import org.opencairn.cairn.ui.design.resources.detail_elapsed_time
 import org.opencairn.cairn.ui.design.resources.detail_elevation_gain
 import org.opencairn.cairn.ui.design.resources.detail_elevation_loss
+import org.opencairn.cairn.ui.design.resources.detail_full_screen
 import org.opencairn.cairn.ui.design.resources.detail_gear
 import org.opencairn.cairn.ui.design.resources.detail_gear_unset
 import org.opencairn.cairn.ui.design.resources.detail_intensity
+import org.opencairn.cairn.ui.design.resources.detail_map
 import org.opencairn.cairn.ui.design.resources.detail_max_cadence
 import org.opencairn.cairn.ui.design.resources.detail_max_elevation
 import org.opencairn.cairn.ui.design.resources.detail_max_hr
@@ -70,14 +77,19 @@ import org.opencairn.cairn.ui.design.resources.detail_moving_time
 import org.opencairn.cairn.ui.design.resources.detail_normalized_power
 import org.opencairn.cairn.ui.design.resources.detail_photos
 import org.opencairn.cairn.ui.design.resources.detail_sources
+import org.opencairn.cairn.ui.design.resources.detail_streams
 import org.opencairn.cairn.ui.design.resources.detail_temperature
 import org.opencairn.cairn.ui.design.resources.detail_tss
+import org.opencairn.cairn.ui.map.RouteMap
 
 @Composable
 fun ActivityDetailScreen(
     viewModel: ActivityDetailViewModel,
     formatters: Formatters,
     dates: DateFormatters,
+    units: Units,
+    onOpenMap: () -> Unit,
+    onOpenStreams: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val activity = state.activity.value
@@ -95,13 +107,35 @@ fun ActivityDetailScreen(
         ) {
             item { Header(activity, dates) }
             item { PrimaryStats(activity, formatters) }
-            activity.mapImageUrl?.let { url ->
+            val stream = state.stream.value
+            if (stream != null && stream.hasGps) {
                 item {
-                    AsyncImage(
-                        model = url,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxWidth().aspectRatio(1.6f).clip(RoundedCornerShape(12.dp)),
+                    SectionWithAction(Res.string.detail_map, Res.string.detail_full_screen, onOpenMap)
+                    Box(modifier = Modifier.fillMaxWidth().height(260.dp).clip(RoundedCornerShape(12.dp))) {
+                        RouteMap(stream, state.selectedIndex)
+                    }
+                }
+            } else {
+                activity.mapImageUrl?.let { url ->
+                    item {
+                        AsyncImage(
+                            model = url,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxWidth().aspectRatio(1.6f).clip(RoundedCornerShape(12.dp)),
+                        )
+                    }
+                }
+            }
+            if (stream != null && stream.channels.isNotEmpty()) {
+                item {
+                    SectionWithAction(Res.string.detail_streams, Res.string.detail_full_screen, onOpenStreams)
+                    StreamCharts(
+                        stream,
+                        units,
+                        state.selectedIndex,
+                        viewModel::select,
+                        channels = stream.channels.take(4),
                     )
                 }
             }
@@ -147,6 +181,22 @@ fun ActivityDetailScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SectionWithAction(
+    title: StringResource,
+    action: StringResource,
+    onAction: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
+        TextButton(onClick = onAction) { Text(stringResource(action)) }
     }
 }
 

@@ -5,6 +5,8 @@ import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import cairn.v1.ActivityFacets
 import cairn.v1.GetActivityRequest
+import cairn.v1.GetActivityStreamRequest
+import cairn.v1.GetActivityStreamResponse
 import cairn.v1.ListAttachmentsRequest
 import cairn.v1.ListAttachmentsResponse
 import cairn.v1.ListBestEffortsRequest
@@ -24,6 +26,7 @@ import org.opencairn.cairn.core.domain.model.Activity
 import org.opencairn.cairn.core.domain.model.ActivityFilter
 import org.opencairn.cairn.core.domain.model.ActivitySearchPage
 import org.opencairn.cairn.core.domain.model.ActivitySort
+import org.opencairn.cairn.core.domain.model.ActivityStream
 import org.opencairn.cairn.core.domain.model.Attachment
 import org.opencairn.cairn.core.domain.model.BestEffort
 import org.opencairn.cairn.core.domain.model.Cached
@@ -216,6 +219,24 @@ class ActivityRepositoryImpl(
             putSnapshot("attachments:$activityId", response.encode())
         }
 
+    override fun observeStream(sourceId: String): Flow<Cached<ActivityStream>> =
+        snapshot("stream:$sourceId") { bytes ->
+            requireNotNull(GetActivityStreamResponse.ADAPTER.decode(bytes).stream) { "no stream" }.toDomain()
+        }
+
+    override suspend fun refreshStream(sourceId: String): Result<Unit> =
+        apiResult {
+            // 0.2 Hz (one sample per 5 s) is what the web detail page draws; enough for a map and charts.
+            val request = GetActivityStreamRequest(activity_source_id = sourceId, max_resolution_hz = STREAM_HZ)
+            val response =
+                scope
+                    .api()
+                    .activities
+                    .GetActivityStream()
+                    .execute(request)
+            putSnapshot("stream:$sourceId", response.encode())
+        }
+
     private fun <T> snapshot(
         key: String,
         decode: (ByteArray) -> T,
@@ -239,6 +260,7 @@ class ActivityRepositoryImpl(
 
     private companion object {
         const val PAGE_SIZE = 50
+        const val STREAM_HZ = 0.2
 
         fun queryHash(
             filter: ActivityFilter,

@@ -8,6 +8,8 @@ kotlin {
             api(projects.core.domain)
             implementation(projects.core.common)
             implementation(projects.ui.design)
+            implementation(projects.ui.map)
+            implementation(projects.ui.charts)
             implementation(libs.lifecycle.viewmodel.compose)
             implementation(libs.lifecycle.runtime.compose)
             implementation(libs.coil.compose)

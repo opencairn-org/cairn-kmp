@@ -23,7 +23,7 @@ okhttp = "5.5.1"
 okio = "3.18.2"
 oidc = "0.18.4"
 maplibre = "0.20.0"
-vico = "2.5.2"
+vico = "3.3.1"
 turbine = "1.2.1"
 androidx-activity = "1.13.0"
 androidx-core = "1.19.1"
@@ -91,7 +91,11 @@ oidc-ktor = { module = "io.github.kalinjul.kotlin.multiplatform:oidc-ktor", vers
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 maplibre-compose = { module = "org.maplibre.compose:maplibre-compose", version.ref = "maplibre" }
-vico = { module = "com.patrykandpatrick.vico:multiplatform", version.ref = "vico" }
+maplibre-runtime-android = { module = "org.maplibre.compose:maplibre-compose-runtime-opengl-android", version.ref = "maplibre" }
+maplibre-runtime-linux-x64 = { module = "org.maplibre.compose:maplibre-compose-runtime-vulkan-linux-x64", version.ref = "maplibre" }
+maplibre-runtime-windows-x64 = { module = "org.maplibre.compose:maplibre-compose-runtime-opengl-windows-x64", version.ref = "maplibre" }
+maplibre-runtime-macos-arm64 = { module = "org.maplibre.compose:maplibre-compose-runtime-metal-macos-arm64", version.ref = "maplibre" }
+vico = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "vico" }
 # test
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 # build-logic classpath

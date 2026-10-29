@@ -32,6 +32,11 @@ dependencies {
     implementation(libs.oidc.appsupport)
     implementation(compose.desktop.currentOs)
     runtimeOnly(libs.kotlinx.coroutines.swing)
+    // MapLibre Native render backends, one per desktop platform the packages target.
+    runtimeOnly(libs.maplibre.runtime.linux.x64)
+    runtimeOnly(libs.maplibre.runtime.windows.x64)
+    runtimeOnly(libs.maplibre.runtime.macos.arm64)
+    implementation(libs.maplibre.compose)
     testImplementation(kotlin("test"))
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
@@ -40,6 +45,8 @@ dependencies {
 compose.desktop {
     application {
         mainClass = "org.opencairn.cairn.desktop.MainKt"
+        // MapLibre's native bindings use the FFM API.
+        jvmArgs += "--enable-native-access=ALL-UNNAMED"
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "cairn"

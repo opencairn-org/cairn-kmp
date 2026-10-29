@@ -41,6 +41,8 @@ include(
     ":core:auth",
     ":core:data",
     ":ui:design",
+    ":ui:map",
+    ":ui:charts",
     ":feature:login",
     ":feature:overview",
     ":feature:activities",

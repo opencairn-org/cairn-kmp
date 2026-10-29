@@ -85,4 +85,9 @@
     <string name="settings_units">Einheiten</string>
     <string name="settings_about">Über</string>
     <string name="settings_app_version">App-Version %1$s</string>
+    <string name="detail_map">Karte</string>
+    <string name="detail_streams">Datenströme</string>
+    <string name="detail_full_screen">Vollbild</string>
+    <string name="detail_no_track">Diese Aktivität hat keine GPS-Spur.</string>
+    <string name="detail_no_streams">Diese Aktivität hat keine aufgezeichneten Datenströme.</string>
 </resources>

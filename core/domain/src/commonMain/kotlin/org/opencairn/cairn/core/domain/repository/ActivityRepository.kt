@@ -5,6 +5,7 @@ import org.opencairn.cairn.core.domain.model.Activity
 import org.opencairn.cairn.core.domain.model.ActivityFilter
 import org.opencairn.cairn.core.domain.model.ActivitySearchPage
 import org.opencairn.cairn.core.domain.model.ActivitySort
+import org.opencairn.cairn.core.domain.model.ActivityStream
 import org.opencairn.cairn.core.domain.model.Attachment
 import org.opencairn.cairn.core.domain.model.BestEffort
 import org.opencairn.cairn.core.domain.model.Cached
@@ -43,6 +44,11 @@ interface ActivityRepository {
     fun observeAttachments(activityId: String): Flow<Cached<List<Attachment>>>
 
     suspend fun refreshAttachments(activityId: String): Result<Unit>
+
+    /** The primary source's samples at a map/chart-friendly resolution. */
+    fun observeStream(sourceId: String): Flow<Cached<ActivityStream>>
+
+    suspend fun refreshStream(sourceId: String): Result<Unit>
 }
 
 interface OverviewRepository {

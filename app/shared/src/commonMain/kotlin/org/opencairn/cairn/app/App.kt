@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -40,11 +41,15 @@ import org.opencairn.cairn.app.di.AppGraph
 import org.opencairn.cairn.app.navigation.Route
 import org.opencairn.cairn.app.navigation.topLevelRoutes
 import org.opencairn.cairn.app.settings.SettingsScreen
+import org.opencairn.cairn.core.domain.model.AccountKey
 import org.opencairn.cairn.core.domain.model.Preferences
+import org.opencairn.cairn.core.domain.model.User
 import org.opencairn.cairn.feature.activities.ActivitiesScreen
 import org.opencairn.cairn.feature.activities.ActivitiesViewModel
 import org.opencairn.cairn.feature.activities.ActivityDetailScreen
 import org.opencairn.cairn.feature.activities.ActivityDetailViewModel
+import org.opencairn.cairn.feature.activities.ActivityMapScreen
+import org.opencairn.cairn.feature.activities.ActivityStreamsScreen
 import org.opencairn.cairn.feature.login.LoginScreen
 import org.opencairn.cairn.feature.login.LoginViewModel
 import org.opencairn.cairn.feature.overview.OverviewScreen
@@ -69,6 +74,8 @@ private val navSavedStateConfiguration =
                     subclass(Route.Activities::class)
                     subclass(Route.Settings::class)
                     subclass(Route.ActivityDetail::class)
+                    subclass(Route.ActivityMap::class)
+                    subclass(Route.ActivityStreams::class)
                 }
             }
     }
@@ -128,18 +135,21 @@ private fun AppShell(
                 }
             }
         },
-    ) { padding -> AppNavDisplay(graph, backStack, formatters, dates, user, account, Modifier.padding(padding)) }
+    ) { padding ->
+        AppNavDisplay(graph, backStack, formatters, dates, prefs, user, account, Modifier.padding(padding))
+    }
 }
 
 @Composable
 @Suppress("LongParameterList")
 private fun AppNavDisplay(
     graph: AppGraph,
-    backStack: androidx.navigation3.runtime.NavBackStack<NavKey>,
+    backStack: NavBackStack<NavKey>,
     formatters: Formatters,
     dates: DateFormatters,
-    user: org.opencairn.cairn.core.domain.model.User?,
-    account: org.opencairn.cairn.core.domain.model.AccountKey?,
+    prefs: Preferences,
+    user: User?,
+    account: AccountKey?,
     modifier: Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -173,7 +183,28 @@ private fun AppNavDisplay(
                 is Route.ActivityDetail -> {
                     NavEntry(key) {
                         val vm = viewModel(key = key.id) { ActivityDetailViewModel(graph.activityRepository, key.id) }
-                        ActivityDetailScreen(vm, formatters, dates)
+                        ActivityDetailScreen(
+                            vm,
+                            formatters,
+                            dates,
+                            prefs.units,
+                            onOpenMap = { backStack.add(Route.ActivityMap(key.id)) },
+                            onOpenStreams = { backStack.add(Route.ActivityStreams(key.id)) },
+                        )
+                    }
+                }
+
+                is Route.ActivityMap -> {
+                    NavEntry(key) {
+                        val vm = viewModel(key = key.id) { ActivityDetailViewModel(graph.activityRepository, key.id) }
+                        ActivityMapScreen(vm)
+                    }
+                }
+
+                is Route.ActivityStreams -> {
+                    NavEntry(key) {
+                        val vm = viewModel(key = key.id) { ActivityDetailViewModel(graph.activityRepository, key.id) }
+                        ActivityStreamsScreen(vm, prefs.units)
                     }
                 }
 
@@ -199,7 +230,7 @@ private fun Route.label(): String =
         Route.Overview -> stringResource(Res.string.nav_overview)
         Route.Activities -> stringResource(Res.string.nav_activities)
         Route.Settings -> stringResource(Res.string.nav_settings)
-        is Route.ActivityDetail -> ""
+        is Route.ActivityDetail, is Route.ActivityMap, is Route.ActivityStreams -> ""
     }
 
 private fun Route.icon() =
@@ -207,5 +238,5 @@ private fun Route.icon() =
         Route.Overview -> Icons.Default.Home
         Route.Activities -> Icons.AutoMirrored.Filled.List
         Route.Settings -> Icons.Default.Settings
-        is Route.ActivityDetail -> Icons.AutoMirrored.Filled.List
+        is Route.ActivityDetail, is Route.ActivityMap, is Route.ActivityStreams -> Icons.AutoMirrored.Filled.List
     }

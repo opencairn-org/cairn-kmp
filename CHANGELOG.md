@@ -24,6 +24,9 @@ Before 1.0.0 a minor bump may contain breaking changes.
   efforts, description, sources). Everything renders from the local cache first and refreshes
   from the server (`SearchActivities`, `GetActivity`, `ListBestEfforts`, `ListAttachments`,
   `StatsService.GetOverview`, `SocialService.ListHomeFeed`).
+- Interactive MapLibre route map on the activity detail page (track with casing, start and finish
+  markers, cursor marker) and a full-screen map view; stream charts (Vico) per channel with a
+  shared cursor that moves the map marker, and a full-screen streams view.
 - `make e2e`: end-to-end run of the app graph against a live cairn-core; debug builds allow
   cleartext HTTP to localhost for emulator testing.
 - App shell: bottom navigation (Overview, Activities, Settings) on Navigation 3, settings with

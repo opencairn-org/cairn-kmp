@@ -14,6 +14,14 @@ sealed interface Route : NavKey {
     @Serializable data class ActivityDetail(
         val id: String,
     ) : Route
+
+    @Serializable data class ActivityMap(
+        val id: String,
+    ) : Route
+
+    @Serializable data class ActivityStreams(
+        val id: String,
+    ) : Route
 }
 
 /** The bottom-bar destinations, in order. */

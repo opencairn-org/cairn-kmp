@@ -45,3 +45,20 @@ fun ProtoAttachment.toDomain() =
         blurhash = blurhash.ifBlank { null },
         caption = caption,
     )
+
+fun cairn.v1.ActivityStream.toDomain() =
+    org.opencairn.cairn.core.domain.model.ActivityStream(
+        sourceId = activity_source_id,
+        resolutionHz = resolution_hz,
+        timeS = time_s,
+        latitude = latitude,
+        longitude = longitude,
+        altitudeM = altitude_m,
+        distanceM = distance_m,
+        speedMps = speed_mps,
+        heartRateBpm = heart_rate_bpm,
+        powerW = power_w,
+        cadence = cadence,
+        temperatureC = temperature_c,
+        grade = grade,
+    )

@@ -66,4 +66,6 @@ dependencies {
     implementation(libs.oidc.appsupport)
     implementation(libs.androidx.activity.compose)
     runtimeOnly(libs.kotlinx.coroutines.android)
+    // MapLibre Native render backend; OpenGL works in the emulator, Vulkan does not.
+    runtimeOnly(libs.maplibre.runtime.android)
 }
