@@ -4,7 +4,7 @@ The native client for [Cairn](https://github.com/opencairn-org/cairn-core): your
 on Android, iOS, Linux, Windows and macOS, from one Kotlin Multiplatform code base.
 View-only for now; imports and edits stay in the web UI until after 1.0.
 
-Status: pre-1.0, under construction. Nothing is released yet.
+Status: pre-1.0, under construction. View-only; the feature set grows release by release.
 
 ## Install
 
@@ -23,7 +23,7 @@ notes list the `cosign verify-blob` and `gh attestation verify` commands.
 
 | cairn-kmp | cairn-core |
 |---|---|
-| 0.1.x | the release that ships handover group H2 (see `docs/handover.md`) |
+| 0.1.x | 0.6.0 or later |
 
 ## Quickstart
 
