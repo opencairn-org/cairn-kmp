@@ -15,8 +15,15 @@ licenseReport {
     configurations = arrayOf("runtimeClasspath")
 }
 
-// Conveyor and the Compose packager read the project version; CI passes the tag via -Pcairn.versionName.
-version = (project.findProperty("cairn.versionName") as String?)?.substringBefore('-') ?: "0.1.0"
+// Conveyor and the Compose packager read the project version; CI passes the tag via -Pcairn.versionName
+// or CAIRN_VERSION (the env var also reaches the Gradle run Conveyor starts for printConveyorConfig).
+val releaseVersion =
+    providers
+        .gradleProperty("cairn.versionName")
+        .orElse(providers.environmentVariable("CAIRN_VERSION"))
+        .map { it.removePrefix("v").substringBefore('-') }
+        .getOrElse("0.1.0")
+version = releaseVersion
 
 kotlin {
     jvmToolchain(25)
@@ -51,7 +58,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "cairn"
-            packageVersion = (project.findProperty("cairn.versionName") as String?)?.substringBefore('-') ?: "0.1.0"
+            packageVersion = releaseVersion
             description = "Cairn: your activities, on every device"
             vendor = "The Cairn Authors"
             licenseFile.set(rootProject.file("LICENSE"))
