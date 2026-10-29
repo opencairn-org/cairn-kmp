@@ -92,6 +92,7 @@
     <string name="detail_streams">Streams</string>
     <string name="detail_full_screen">Full screen</string>
     <string name="detail_see_all">See all</string>
+    <string name="action_back">Back</string>
     <string name="detail_no_track">This activity has no GPS track.</string>
     <string name="detail_no_streams">This activity has no recorded data streams.</string>
 </resources>

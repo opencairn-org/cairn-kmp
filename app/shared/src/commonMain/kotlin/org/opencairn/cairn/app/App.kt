@@ -197,6 +197,7 @@ private fun AppNavDisplay(
                             formatters,
                             dates,
                             prefs.units,
+                            onBack = { backStack.removeLastOrNull() },
                             onOpenMap = { backStack.add(Route.ActivityMap(key.id)) },
                             onOpenStreams = { backStack.add(Route.ActivityStreams(key.id)) },
                         )
@@ -206,14 +207,14 @@ private fun AppNavDisplay(
                 is Route.ActivityMap -> {
                     NavEntry(key) {
                         val vm = detailViewModel(key.id)
-                        ActivityMapScreen(vm)
+                        ActivityMapScreen(vm, onBack = { backStack.removeLastOrNull() })
                     }
                 }
 
                 is Route.ActivityStreams -> {
                     NavEntry(key) {
                         val vm = detailViewModel(key.id)
-                        ActivityStreamsScreen(vm, prefs.units)
+                        ActivityStreamsScreen(vm, prefs.units, onBack = { backStack.removeLastOrNull() })
                     }
                 }
 

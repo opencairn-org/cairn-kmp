@@ -1,6 +1,7 @@
 package org.opencairn.cairn.ui.charts
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
@@ -57,15 +60,20 @@ fun CombinedStreamChart(
     units: Units,
     selectedIndex: Int?,
     onSelect: (Int?) -> Unit,
+    hidden: Set<StreamChannel>,
+    onToggle: (StreamChannel) -> Unit,
     modifier: Modifier = Modifier,
     channels: List<StreamChannel> = stream.channels,
     height: Dp = 200.dp,
 ) {
     val producer = remember { CartesianChartModelProducer() }
-    val normalised = remember(stream, channels) { channels.map { normalise(stream.values(it)) } }
+    val visible = remember(channels, hidden) { channels.filterNot { it in hidden } }
+    val normalised = remember(stream, visible) { visible.map { normalise(stream.values(it)) } }
     LaunchedEffect(normalised) {
-        producer.runTransaction {
-            lineModel { normalised.forEach { ys -> series(x = stream.timeS, y = ys) } }
+        if (normalised.isNotEmpty()) {
+            producer.runTransaction {
+                lineModel { normalised.forEach { ys -> series(x = stream.timeS, y = ys) } }
+            }
         }
     }
     val range = remember { CartesianLayerRangeProvider.fixed(minY = -PAD, maxY = 100.0 + PAD) }
@@ -80,7 +88,7 @@ fun CombinedStreamChart(
         }
     val marker = rememberDefaultCartesianMarker(label = rememberTextComponent(), valueFormatter = timeOnly)
     val lines =
-        channels.map { channel ->
+        visible.map { channel ->
             LineCartesianLayer.rememberLine(
                 fill = LineCartesianLayer.LineFill.single(Fill(channel.color())),
                 stroke = LineCartesianLayer.LineStroke.Continuous(thickness = 1.5.dp),
@@ -94,7 +102,11 @@ fun CombinedStreamChart(
             modifier = Modifier.padding(horizontal = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            channels.forEach { channel -> Legend(channel, units, selected?.let { stream.values(channel)[it] }) }
+            channels.forEach { channel ->
+                Legend(channel, units, selected?.let { stream.values(channel)[it] }, channel !in hidden) {
+                    onToggle(channel)
+                }
+            }
         }
         selectedX?.let {
             Text(
@@ -104,6 +116,7 @@ fun CombinedStreamChart(
                 modifier = Modifier.padding(horizontal = 4.dp),
             )
         }
+        if (visible.isEmpty()) return@Column
         CartesianChartHost(
             chart =
                 rememberCartesianChart(
@@ -121,13 +134,25 @@ fun CombinedStreamChart(
     }
 }
 
+/** Tapping a legend entry hides or shows its series; hidden entries are dimmed. */
 @Composable
 private fun Legend(
     channel: StreamChannel,
     units: Units,
     value: Double?,
+    shown: Boolean,
+    onClick: () -> Unit,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+    Row(
+        modifier =
+            Modifier
+                .clip(CircleShape)
+                .clickable(onClick = onClick)
+                .alpha(if (shown) 1f else 0.4f)
+                .padding(2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
         Box(modifier = Modifier.size(8.dp).background(channel.color(), CircleShape))
         Text(channel.label(units), style = MaterialTheme.typography.labelSmall, color = channel.color())
         value?.let {

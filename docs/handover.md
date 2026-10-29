@@ -122,10 +122,22 @@ H3 is complete on core branch `feat/transport-instance-auth`.
 
 ## H5. Later
 
-- `ActivityService.StreamActivityEvents` for live list updates.
+- `ActivityService.StreamActivityEvents` for live list updates. **Done** (core
+  `feat/transport-instance-auth`): per-user hub, 30 s heartbeat, type filter.
 - An "authorized apps" page in the web UI (list + revoke OAuth clients/grants), promised in
-  `cairn-docs/docs/integrations/oauth.mdx`.
+  `cairn-docs/docs/integrations/oauth.mdx`. **Done**: `ListAuthorizedApps` /
+  `RevokeAuthorizedApp`, REST `/api/oauth/apps`, settings section in the SPA.
 - `buf push` of `buf.build/cairn/api` so clients can depend on the module instead of vendoring.
+  **CI job added, not yet executed**: `proto-push` in `build-core.yml` runs on `v*` tags once
+  the BSR org exists, `BUF_TOKEN` is stored and the `BUF_PUSH` repository variable is `true`.
+  Until then the client vendors the protos.
+
+Also delivered on the same branch: the proto-declared "planned" RPCs (source preview trio,
+custom best efforts, native segment authoring, `Complete2FA` as passkey second factor) and
+the full `AdminService` (audit log, user management, settings, invites, health, jobs, fleet,
+moderation, webhook tokens, `StreamAdminEvents`, `TriggerMaintenance`). Still planned:
+`ExternalAccountService.DeleteExternalAccount` / `RotateWebhookToken` and the six
+`MetricsService` RPCs beyond list-by-key.
 
 ## Binary content (photos, static maps, exports)
 
@@ -573,5 +585,7 @@ as documentation first and enforcement in a minor release with a CHANGELOG note.
 - [x] H3 GetStats, GetTrainingLoad, ListRecords, GetBestEffortHistory, GetHeatmap, SegmentService, MetricsService, SettingsService (core `feat/transport-instance-auth`)
 - [x] H4 CountUnread, StreamNotifications, ExternalAccountService, SocialService, GetQuota,
       AuthService account RPCs (core `feat/transport-instance-auth`)
-- [ ] H5 StreamActivityEvents, authorized-apps page, buf push
+- [x] H5 StreamActivityEvents, authorized-apps page (core `feat/transport-instance-auth`);
+      buf push is a tag-gated CI job waiting for the BSR org + `BUF_TOKEN`
+- [x] AdminService parity + planned RPCs (previews, custom best efforts, segments, Complete2FA)
 - [ ] Each group: CHANGELOG entry, `buf breaking` green, docs page for the scope table, release tag the client README can pin

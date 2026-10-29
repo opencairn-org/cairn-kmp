@@ -19,6 +19,7 @@ import org.opencairn.cairn.core.domain.model.ActivityStream
 import org.opencairn.cairn.core.domain.model.Attachment
 import org.opencairn.cairn.core.domain.model.BestEffort
 import org.opencairn.cairn.core.domain.model.Cached
+import org.opencairn.cairn.core.domain.model.StreamChannel
 import org.opencairn.cairn.core.domain.repository.ActivityRepository
 import org.opencairn.cairn.ui.design.format.userMessage
 
@@ -29,6 +30,8 @@ data class ActivityDetailUiState(
     val stream: Cached<ActivityStream> = Cached(null, null),
     /** Sample index under the chart cursor / map marker; shared by every chart and the map. */
     val selectedIndex: Int? = null,
+    /** Channels switched off in the legend; applies to the combined and the stacked charts. */
+    val hiddenChannels: Set<StreamChannel> = emptySet(),
     val refreshing: Boolean = false,
     val error: String? = null,
 )
@@ -67,6 +70,12 @@ class ActivityDetailViewModel(
     }
 
     fun select(index: Int?) = status.update { it.copy(selectedIndex = index) }
+
+    fun toggleChannel(channel: StreamChannel) =
+        status.update { st ->
+            val hidden = if (channel in st.hiddenChannels) st.hiddenChannels - channel else st.hiddenChannels + channel
+            st.copy(hiddenChannels = hidden)
+        }
 
     fun refresh() {
         if (status.value.refreshing) return

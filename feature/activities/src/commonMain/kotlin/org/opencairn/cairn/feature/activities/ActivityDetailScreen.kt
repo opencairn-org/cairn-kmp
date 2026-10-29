@@ -89,16 +89,35 @@ fun ActivityDetailScreen(
     formatters: Formatters,
     dates: DateFormatters,
     units: Units,
+    onBack: () -> Unit,
     onOpenMap: () -> Unit,
     onOpenStreams: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val activity = state.activity.value
-    if (activity == null) {
-        if (state.error != null) StaleBanner(state.error, onRetry = viewModel::refresh) else LoadingBox()
-        return
+    ActivityPage(activity, onBack) { padding ->
+        if (activity == null) {
+            if (state.error != null) StaleBanner(state.error, onRetry = viewModel::refresh) else LoadingBox()
+        } else {
+            DetailContent(viewModel, state, activity, formatters, dates, units, onOpenMap, onOpenStreams, padding)
+        }
     }
-    Column {
+}
+
+@Composable
+@Suppress("LongParameterList")
+private fun DetailContent(
+    viewModel: ActivityDetailViewModel,
+    state: ActivityDetailUiState,
+    activity: Activity,
+    formatters: Formatters,
+    dates: DateFormatters,
+    units: Units,
+    onOpenMap: () -> Unit,
+    onOpenStreams: () -> Unit,
+    padding: androidx.compose.foundation.layout.PaddingValues,
+) {
+    Column(modifier = Modifier.padding(padding)) {
         if (state.error != null) StaleBanner(state.error, onRetry = viewModel::refresh)
         LazyColumn(
             contentPadding =
@@ -131,7 +150,14 @@ fun ActivityDetailScreen(
             if (stream != null && stream.channels.isNotEmpty()) {
                 item {
                     SectionWithAction(Res.string.detail_streams, Res.string.detail_see_all, onOpenStreams)
-                    CombinedStreamChart(stream, units, state.selectedIndex, viewModel::select)
+                    CombinedStreamChart(
+                        stream,
+                        units,
+                        state.selectedIndex,
+                        viewModel::select,
+                        hidden = state.hiddenChannels,
+                        onToggle = viewModel::toggleChannel,
+                    )
                 }
             }
             item { SecondaryStats(activity, formatters) }
@@ -210,10 +236,6 @@ private fun Header(
     dates: DateFormatters,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SportIcon(a.type, Modifier.size(28.dp))
-            Text(a.displayTitle, style = MaterialTheme.typography.headlineSmall)
-        }
         val subtype = listOf(a.discipline, a.customSubtype).filter { it.isNotBlank() }.joinToString(" · ")
         val line =
             listOf(
