@@ -82,6 +82,9 @@ jobs:
           path: dist/
           if-no-files-found: error
   desktop:
+    # Opt-in until the Conveyor pipeline is proven on the runners: set the repository variable
+    # RELEASE_DESKTOP=true to publish the Linux/Windows/macOS packages with the release.
+    if: vars.RELEASE_DESKTOP == 'true'
     needs: check
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -123,6 +126,8 @@ jobs:
           if-no-files-found: error
   publish:
     needs: [android, desktop]
+    # Runs when the desktop job is skipped (opt-in), never when a job failed or was cancelled.
+    if: ${{ !cancelled() && needs.android.result == 'success' && contains(fromJSON('["success","skipped"]'), needs.desktop.result) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

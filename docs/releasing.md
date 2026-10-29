@@ -24,6 +24,10 @@ and creates the GitHub release with the tag's `CHANGELOG.md` section. Releases a
 4. **Rulesets** as in cairn-core: `main` requires the `check` status, `v*` tags are immutable
    and admin-only.
 
+Desktop packages are opt-in: the `desktop` job only runs when the repository variable
+`RELEASE_DESKTOP` is `true` (`gh variable set RELEASE_DESKTOP -b true`). Without it a release
+carries the Android APK, its SBOM and the source SBOM.
+
 ## Cutting a release
 
 ```sh
