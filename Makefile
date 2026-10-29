@@ -10,7 +10,7 @@ COVER_MIN ?= 40
 OSV_SCANNER_VERSION ?= v2.7.0
 # renovate: datasource=github-releases depName=fleetlint/fleetlint
 FLEETLINT_VERSION ?= v0.9.0
-PROTO_VERSION := $(shell cat PROTO_VERSION 2>/dev/null)
+PROTO_REF := $(shell cat PROTO_VERSION 2>/dev/null)
 
 .PHONY: help
 help: ## list targets
@@ -71,8 +71,8 @@ desktop: ## run the desktop app
 	$(GRADLE) $(GRADLE_FLAGS) :app:desktop:run
 
 .PHONY: proto-check
-proto-check: ## vendored protos match cairn-core at PROTO_VERSION
-	scripts/sync-proto.sh --check "$(PROTO_VERSION)"
+proto-check: ## vendored protos match cairn-core at the ref in PROTO_VERSION
+	scripts/sync-proto.sh --check "$(PROTO_REF)"
 
 .PHONY: proto-sync
 proto-sync: ## re-vendor protos from cairn-core: make proto-sync V=vX.Y.Z

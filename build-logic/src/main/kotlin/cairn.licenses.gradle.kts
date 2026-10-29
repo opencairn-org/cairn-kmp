@@ -2,6 +2,7 @@
 // The module sets `licenseReport.configurations` to its runtime classpath(s).
 import com.github.jk1.license.filter.LicenseBundleNormalizer
 import com.github.jk1.license.render.JsonReportRenderer
+import com.github.jk1.license.render.ReportRenderer
 import com.github.jk1.license.render.TextReportRenderer
 
 plugins {
@@ -14,7 +15,8 @@ licenseReport {
             .dir("reports/licenses")
             .get()
             .asFile.path
-    renderers = arrayOf(TextReportRenderer("THIRD-PARTY-NOTICES.txt"), JsonReportRenderer("licenses.json"))
+    renderers =
+        arrayOf<ReportRenderer>(TextReportRenderer("THIRD-PARTY-NOTICES.txt"), JsonReportRenderer("licenses.json"))
     filters = arrayOf(LicenseBundleNormalizer())
     allowedLicensesFile = rootProject.file("config/licenses/allowed.json")
     excludeBoms = true
