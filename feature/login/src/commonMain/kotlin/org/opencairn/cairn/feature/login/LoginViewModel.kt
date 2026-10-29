@@ -47,15 +47,18 @@ class LoginViewModel(
 
     fun signInWithBrowser() {
         val server = _state.value.server ?: return
-        launchBusy { session.signIn(server).onFailure { fail(it) } }
+        launchBusy { session.signIn(server).onSuccess { reset() }.onFailure { fail(it) } }
     }
 
     fun signInWithToken() {
         val server = _state.value.server ?: return
         val token = _state.value.token.trim()
         if (token.isEmpty()) return
-        launchBusy { session.signInWithToken(server, token).onFailure { fail(it) } }
+        launchBusy { session.signInWithToken(server, token).onSuccess { reset() }.onFailure { fail(it) } }
     }
+
+    /** After a successful sign-in nothing of the entry (in particular the token) stays in memory. */
+    private fun reset() = _state.update { LoginUiState() }
 
     private fun launchBusy(block: suspend () -> Unit) {
         if (_state.value.busy) return

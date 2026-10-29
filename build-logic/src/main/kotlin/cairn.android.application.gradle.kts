@@ -4,6 +4,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
+    // The Compose Multiplatform plugin packages the resources of library modules into the app's assets.
+    id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
     id("cairn.quality")
 }

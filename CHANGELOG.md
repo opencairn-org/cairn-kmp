@@ -24,5 +24,7 @@ Before 1.0.0 a minor bump may contain breaking changes.
   efforts, description, sources). Everything renders from the local cache first and refreshes
   from the server (`SearchActivities`, `GetActivity`, `ListBestEfforts`, `ListAttachments`,
   `StatsService.GetOverview`, `SocialService.ListHomeFeed`).
+- `make e2e`: end-to-end run of the app graph against a live cairn-core; debug builds allow
+  cleartext HTTP to localhost for emulator testing.
 - App shell: bottom navigation (Overview, Activities, Settings) on Navigation 3, settings with
   account and server information and sign-out.

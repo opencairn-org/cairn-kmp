@@ -79,6 +79,7 @@ class DateFormatters(
             days == 0L -> "today"
             days == 1L -> "yesterday"
             days < 7 -> "$days days ago"
+            days < 14 -> "1 week ago"
             days < 30 -> "${days / 7} weeks ago"
             else -> date(instant, zone)
         }

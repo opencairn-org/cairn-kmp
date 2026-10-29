@@ -3,6 +3,7 @@ package org.opencairn.cairn.feature.activities
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -195,22 +196,27 @@ private fun PrimaryStats(
     f: Formatters,
 ) {
     val s = a.summary
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        s.distance?.let { StatTile(stringResource(Res.string.detail_distance), f.distance(it), Modifier.weight(1f)) }
-        StatTile(
-            stringResource(Res.string.detail_moving_time),
-            f.duration(a.moving.takeIf { it.inWholeSeconds > 0 } ?: a.elapsed),
-            Modifier.weight(1f),
-        )
-        s.avgSpeed?.let {
-            if (a.type.usesPace) {
-                StatTile(stringResource(Res.string.detail_avg_pace), f.pace(it), Modifier.weight(1f))
-            } else {
-                StatTile(stringResource(Res.string.detail_avg_speed), f.speed(it), Modifier.weight(1f))
+    val moving = a.moving.takeIf { it.inWholeSeconds > 0 } ?: a.elapsed
+    val tiles =
+        buildList {
+            s.distance?.let { add(Res.string.detail_distance to f.distance(it)) }
+            add(Res.string.detail_moving_time to f.duration(moving))
+            s.avgSpeed?.let {
+                if (a.type.usesPace) {
+                    add(Res.string.detail_avg_pace to f.pace(it))
+                } else {
+                    add(Res.string.detail_avg_speed to f.speed(it))
+                }
             }
+            s.elevationGain?.let { add(Res.string.detail_elevation_gain to f.elevation(it)) }
         }
-        s.elevationGain?.let {
-            StatTile(stringResource(Res.string.detail_elevation_gain), f.elevation(it), Modifier.weight(1f))
+    // Two tiles per row keeps the values on one line on phones.
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        tiles.chunked(2).forEach { pair ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                pair.forEach { (label, value) -> StatTile(stringResource(label), value, Modifier.weight(1f)) }
+                if (pair.size == 1) Spacer(Modifier.weight(1f))
+            }
         }
     }
 }

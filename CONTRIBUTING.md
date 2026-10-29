@@ -35,6 +35,23 @@ make build          # debug APK + desktop jar
 make desktop        # run the desktop app against your cairn-core
 ```
 
+## Testing against a local cairn-core
+
+1. In the cairn-core checkout: `podman compose -f docker-compose.dev.yml up -d`, build the server
+   with the web UI embedded (`make web-build`, copy `web/build` to
+   `internal/adapter/primary/web/dist`, `go build -tags embedweb ./cmd/server`) and run it with
+   `dev.env.example` values plus `CAIRN_HTTP_PUBLIC_BASE_URL=http://localhost:8080` and
+   `CAIRN_API_ORIGIN=http://localhost:8080`.
+2. Seed data: sign in as the bootstrap admin (`POST /auth/password`), create a PAT
+   (`POST /api/pats`), upload GPX files (`POST /api/activities/upload`) or manual activities
+   (`POST /api/activities/manual`).
+3. Headless: `make e2e CAIRN_E2E_BASE_URL=http://localhost:8080 CAIRN_E2E_TOKEN=cairn_pat_…`
+   runs the real app graph (sign-in, overview, search, detail, cache) against it.
+4. Emulator: `adb reverse tcp:8080 tcp:8080` (and `tcp:9000` for MinIO content), install the
+   debug APK (cleartext to localhost is allowed in debug builds only) and enter
+   `http://localhost:8080` as the server. Both the browser sign-in (Custom Tab, core's consent
+   page, redirect back by custom scheme) and the token sign-in work this way.
+
 ## Architecture
 
 Read `docs/ARCHITECTURE.md` and the ADRs in `docs/adr/` first. The short version:

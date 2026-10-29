@@ -14,6 +14,8 @@ kotlin {
         namespace = cairnNamespace
         compileSdk = catalog.version("android-compileSdk").toInt()
         minSdk = catalog.version("android-minSdk").toInt()
+        // Packages Compose Multiplatform resources (strings, fonts) into the Android artifact.
+        androidResources.enable = true
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_21)
         }
