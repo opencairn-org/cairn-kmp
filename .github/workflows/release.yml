@@ -12,7 +12,7 @@ defaults:
     shell: bash
 jobs:
   check:
-    uses: $/.github/workflows/check.yml
+    uses: ./.github/workflows/check.yml # zizmor: ignore[self-repository] fleetlint pins by this form
     permissions:
       contents: read
       security-events: write
