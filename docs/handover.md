@@ -221,7 +221,7 @@ profile to `MetricsService`; sync status to `ExternalAccountService`; instance i
 
 ### Prerequisite refactor (H0.5)
 
-The read paths are implemented in `package main` (`projectActivityJSON`, `visibilityFor`,
+DONE (2026-10-29). Kept for history: the read paths were implemented in `package main` (`projectActivityJSON`, `visibilityFor`,
 `parseActivityFilter`, `zonesResponse`, `mergedStreamJSON`, `userCardJSON`, `workerPoolsJSON`,
 the week/overview arithmetic) against concrete Postgres repos on `App`. A Connect handler in
 `internal/adapter/primary/connect` cannot reach them. Move each into a usecase (or a shared
@@ -592,7 +592,11 @@ as documentation first and enforcement in a minor release with a CHANGELOG note.
       `ReimportSource`, `ListRecords`, `PresignActivityUpload`, `UploadActivity`, plus
       `DELETE /api/activities/{id}` for REST parity)
 - [x] H0.4 every Unimplemented RPC is commented as planned or browser-only (decision: none deleted)
-- [ ] H0.5 read paths moved out of `package main`
+- [x] H0.5 read paths moved out of `package main` (core `feat/transport-instance-auth`): quota,
+      visibility gates, follow/block lists, admin user page and notification preferences share
+      `internal/usecase` types with Connect. Left in main on purpose: ActivityPub actor/outbox
+      routes, the webhook-endpoint presence scan, and owner-only list routes (shares,
+      field-sources, passkeys) that have no RPC and no logic beyond an ownership check.
 - [x] H1 GetInstanceInfo, loopback redirect ports, DCR metadata, scope docs + new scopes, Logout, Register, GetQuota (core `feat/transport-instance-auth`)
 - [x] H2 ActivityService reads + SearchActivities + StatsService.GetOverview + ListHomeFeed + signed content (core `feat/transport-instance-auth`)
 - [x] H3 GetStats, GetTrainingLoad, ListRecords, GetBestEffortHistory, GetHeatmap, SegmentService, MetricsService, SettingsService (core `feat/transport-instance-auth`)
@@ -601,6 +605,10 @@ as documentation first and enforcement in a minor release with a CHANGELOG note.
 - [x] H5 StreamActivityEvents, authorized-apps page (core `feat/transport-instance-auth`);
       buf push is a tag-gated CI job waiting for the BSR org + `BUF_TOKEN`
 - [x] AdminService parity + planned RPCs (previews, custom best efforts, segments, Complete2FA)
+- [x] Remaining planned RPCs: the six `MetricsService` store RPCs (+ `/api/metrics`),
+      `DeleteExternalAccount`, `RotateWebhookToken`, `ListNotificationPreferences`,
+      `UpdateNotificationPreferences`; `StreamAdminEvents` emits every enum type; maintenance
+      jobs persisted (core `feat/transport-instance-auth`). No RPC is left "planned".
 - [x] H6 device authorization grant (core `feat/device-authorization`): `POST /oauth/device_authorization`,
       `grant_type=urn:ietf:params:oauth:grant-type:device_code` at the token endpoint, `/oauth/device`
       verification page, `AuthService.LookupDeviceAuthorization` / `DecideDeviceAuthorization` under the
