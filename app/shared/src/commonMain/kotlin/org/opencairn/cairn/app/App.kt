@@ -1,6 +1,8 @@
 package org.opencairn.cairn.app
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -10,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -116,7 +119,10 @@ private fun AppShell(
     val user by graph.sessionRepository.currentUser.collectAsStateWithLifecycle(initialValue = null)
     val account by graph.sessionRepository.activeAccount.collectAsStateWithLifecycle(initialValue = null)
     val top = backStack.lastOrNull()
+    // Sub-pages own their top bar, which draws under the status bar; the shell only pads the bottom.
+    val insets = if (top in topLevelRoutes) ScaffoldDefaults.contentWindowInsets else WindowInsets.navigationBars
     Scaffold(
+        contentWindowInsets = insets,
         bottomBar = {
             if (top in topLevelRoutes) {
                 NavigationBar {

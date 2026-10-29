@@ -15,10 +15,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -83,6 +85,7 @@ import org.opencairn.cairn.ui.design.resources.detail_temperature
 import org.opencairn.cairn.ui.design.resources.detail_tss
 import org.opencairn.cairn.ui.map.RouteMap
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityDetailScreen(
     viewModel: ActivityDetailViewModel,
@@ -95,7 +98,8 @@ fun ActivityDetailScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val activity = state.activity.value
-    ActivityPage(activity, onBack) { padding ->
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    ActivityPage(activity, onBack, scrollBehavior = scrollBehavior) { padding ->
         if (activity == null) {
             if (state.error != null) StaleBanner(state.error, onRetry = viewModel::refresh) else LoadingBox()
         } else {

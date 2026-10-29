@@ -31,8 +31,8 @@ Before 1.0.0 a minor bump may contain breaking changes.
   the cursor; "See all" opens the stacked per-channel view sized to the screen. The detail
   page, the full-screen map and the streams view share one view model, so the cursor carries over.
   Tapping a legend entry hides or shows that channel in both views.
-- Activity sub-pages (detail, map, streams) share a header with back navigation, sport icon,
-  title and page name.
+- Activity sub-pages (detail, map, streams) share a compact header with back navigation, sport
+  icon, title and page name; on the detail page it slides away while scrolling.
 - Cairn launcher icon (adaptive with monochrome variant and legacy densities) and the desktop
   window and package icon.
 - `make e2e`: end-to-end run of the app graph against a live cairn-core; debug builds allow

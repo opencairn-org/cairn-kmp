@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -24,6 +25,7 @@ import org.opencairn.cairn.ui.design.resources.detail_no_streams
 import org.opencairn.cairn.ui.design.resources.detail_streams
 
 /** Every channel, taller, one cursor; the web's /streams page. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityStreamsScreen(
     viewModel: ActivityDetailViewModel,
