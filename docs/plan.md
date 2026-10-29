@@ -55,9 +55,9 @@ Goal: log in to a cairn-core instance with OAuth 2.1 + PKCE, see "signed in as <
 app restart offline.
 
 1. `proto/` vendoring: `scripts/sync-proto.sh <ref>` copies `cairn-core/api/proto/cairn/v1`,
-   writes `PROTO_VERSION`; `make proto-check` diffs against the ref. Until core tags the handover
-   releases, the ref is core's `feat/transport-instance-auth` branch (`CAIRN_CORE_REPO` may point
-   at a local checkout); the pin moves to a tag at the first client release. Wire plugin generates into
+   writes `PROTO_VERSION`; `make proto-check` diffs against the ref. The pin is a cairn-core release
+   tag (`v0.6.0` shipped the whole handover; `CAIRN_CORE_REPO` may point at a local checkout). Wire
+   plugin generates into
    `core/network` `commonMain` (messages + service interfaces for the eight `cairn.v1` services).
 2. `ConnectGrpcClient` (Wire `GrpcClient` over Ktor): unary POST, binary proto, headers, error
    JSON → `ConnectException(code, message, details)`, timeout, cancellation, HTTP/2 via the

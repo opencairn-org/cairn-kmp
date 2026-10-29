@@ -10,6 +10,9 @@ Before 1.0.0 a minor bump may contain breaking changes.
 
 ### Added
 
+- Protos vendored from the cairn-core `v0.6.0` release, the first tagged core that ships the whole
+  handover; `make proto-check` verifies against that tag.
+
 - Kotlin Multiplatform project skeleton (Android, desktop, iOS) with the quality gates,
   task runner, CI and fleetlint policy shared with the other cairn repositories.
 - Connect-protocol transport over Ktor for the Wire-generated `cairn.v1` stubs, with error

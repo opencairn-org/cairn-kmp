@@ -17,9 +17,9 @@ comment on every field (buf lint `STANDARD` already applies).
 
 ## H0. Transport
 
-1. **h2c.** DONE on core branch `feat/transport-instance-auth` (`Server.Protocols` with
+1. **h2c.** DONE on core `v0.6.0` (`Server.Protocols` with
    `UnencryptedHTTP2`, prior knowledge). Connect, gRPC and gRPC-Web keep working unchanged.
-2. **Streaming interceptors.** DONE on core branch `feat/activity-service-parity`:
+2. **Streaming interceptors.** DONE on core `v0.6.0`:
    `SessionInterceptor`, `ScopeInterceptor` and `RequireAdminInterceptor` now wrap every
    stream type (`internal/adapter/primary/connect/auth.go`, `serverInterceptor`), so
    server-streaming RPCs get the same auth context and scope checks. Note the scope rule is
@@ -39,7 +39,7 @@ comment on every field (buf lint `STANDARD` already applies).
 
 ## H1. Before client Phase 1 (login, instance info)
 
-1. **`AuthService.GetInstanceInfo`** DONE (core `feat/transport-instance-auth`); `registration_open`
+1. **`AuthService.GetInstanceInfo`** DONE (core `v0.6.0`); `registration_open`
    is false (invite-only), `supported_scopes` lists the catalog.
    ```proto
    message GetInstanceInfoRequest {}
@@ -71,7 +71,7 @@ comment on every field (buf lint `STANDARD` already applies).
 
 (RPC-by-RPC specification follows in section "RPC specifications"; this list is the scope.)
 
-- DONE (core `feat/transport-instance-auth`): `StatsService.GetOverview`,
+- DONE (core `v0.6.0`): `StatsService.GetOverview`,
   `SocialService.ListHomeFeed`, `ActivityService.SearchActivities` (new RPC; `ListActivities`
   stays the simple list). Cursors are opaque offsets for now (the feed repos page by offset);
   a keyset cursor follows when the repos support it.
@@ -83,11 +83,11 @@ comment on every field (buf lint `STANDARD` already applies).
 - DONE: `ActivityService.GetActivityMapImage` and `Activity.map_image` / `map_image_etag`
 - DONE: signed URLs for all binary content (see "Binary content")
 
-H2 is complete on core branch `feat/transport-instance-auth`.
+H2 is complete on core `v0.6.0`.
 
 ## H3. Before client Phase 3 (analytics, segments, health)
 
-- DONE (core `feat/transport-instance-auth`): `StatsService.GetStats`, `GetTrainingLoad`,
+- DONE (core `v0.6.0`): `StatsService.GetStats`, `GetTrainingLoad`,
   `GetBestEffortHistory`, `GetHeatmap` (encoded polylines); `ListRecords` (activity_type +
   metrics filters; discipline/time_range refused with InvalidArgument until the repo supports
   them)
@@ -98,11 +98,11 @@ H2 is complete on core branch `feat/transport-instance-auth`.
   `ListAthleteMetrics` + upsert/delete); `GetUserContext`/series/bulk RPCs stay planned.
   `SettingsService` mounted over the merge policies (the only stored settings section).
 
-H3 is complete on core branch `feat/transport-instance-auth`.
+H3 is complete on core `v0.6.0`.
 
 ## H4. Before client Phase 4 (account, social, sync status)
 
-- DONE (core `feat/transport-instance-auth`): `NotificationService.CountUnreadNotifications`,
+- DONE (core `v0.6.0`): `NotificationService.CountUnreadNotifications`,
   `StreamNotifications` (events after open + 30 s heartbeat = event with empty id)
 - DONE: `ExternalAccountService` mounted; the sync status lives on `ExternalAccount` itself
   (fields 21–32, no separate `GetSyncStatus`), plus `ListConnections`, `ListSyncHistory`,
@@ -136,7 +136,7 @@ verification endpoints are rate-limited per client address.
 ## H5. Later
 
 - `ActivityService.StreamActivityEvents` for live list updates. **Done** (core
-  `feat/transport-instance-auth`): per-user hub, 30 s heartbeat, type filter.
+  `v0.6.0`): per-user hub, 30 s heartbeat, type filter.
 - An "authorized apps" page in the web UI (list + revoke OAuth clients/grants), promised in
   `cairn-docs/docs/integrations/oauth.mdx`. **Done**: `ListAuthorizedApps` /
   `RevokeAuthorizedApp`, REST `/api/oauth/apps`, settings section in the SPA.
@@ -154,7 +154,7 @@ moderation, webhook tokens, `StreamAdminEvents`, `TriggerMaintenance`). Still pl
 
 ## Binary content (photos, static maps, exports)
 
-Status 2026-10-28 (core branch `feat/transport-instance-auth`, second commit): items 1–6 DONE
+Status 2026-10-28 (core `v0.6.0`, second commit): items 1–6 DONE
 with one decision: stored objects are presigned on `CAIRN_STORAGE_PUBLIC_ENDPOINT` when set,
 otherwise (and always for content rendered on demand: course images, exports) the URL points at
 core's signed `GET /content/{token}` route, so every deployment works without exposing the
@@ -391,7 +391,7 @@ message ListCommentsResponse { repeated Comment comments = 1; PageResponse page 
 ```
 
 **`ActivityService.GetActivityManageInfo`** – replaces `/manage` (`activity_manage.go:89`).
-Owner only. `ListActivitySources` is implemented on core `feat/activity-service-parity` with the
+Owner only. `ListActivitySources` is implemented on core `v0.6.0` with the
 plain `ActivitySource` rows (detached ones included); add the insight fields to it instead of a
 new message:
 ```proto
@@ -586,30 +586,30 @@ as documentation first and enforcement in a minor release with a CHANGELOG note.
 
 ## Checklist for core (copy into the tracking issue)
 
-- [x] H0.1 h2c (core `feat/transport-instance-auth`)
-- [x] H0.2 streaming interceptors (core `feat/activity-service-parity`; also implemented there:
+- [x] H0.1 h2c (core `v0.6.0`)
+- [x] H0.2 streaming interceptors (core `v0.6.0`; also implemented there:
       `ListActivitySources`, `DeleteActivity`, `DetachSource`, `LinkSourceToActivity`,
       `ReimportSource`, `ListRecords`, `PresignActivityUpload`, `UploadActivity`, plus
       `DELETE /api/activities/{id}` for REST parity)
 - [x] H0.4 every Unimplemented RPC is commented as planned or browser-only (decision: none deleted)
-- [x] H0.5 read paths moved out of `package main` (core `feat/transport-instance-auth`): quota,
+- [x] H0.5 read paths moved out of `package main` (core `v0.6.0`): quota,
       visibility gates, follow/block lists, admin user page and notification preferences share
       `internal/usecase` types with Connect. Left in main on purpose: ActivityPub actor/outbox
       routes, the webhook-endpoint presence scan, and owner-only list routes (shares,
       field-sources, passkeys) that have no RPC and no logic beyond an ownership check.
-- [x] H1 GetInstanceInfo, loopback redirect ports, DCR metadata, scope docs + new scopes, Logout, Register, GetQuota (core `feat/transport-instance-auth`)
-- [x] H2 ActivityService reads + SearchActivities + StatsService.GetOverview + ListHomeFeed + signed content (core `feat/transport-instance-auth`)
-- [x] H3 GetStats, GetTrainingLoad, ListRecords, GetBestEffortHistory, GetHeatmap, SegmentService, MetricsService, SettingsService (core `feat/transport-instance-auth`)
+- [x] H1 GetInstanceInfo, loopback redirect ports, DCR metadata, scope docs + new scopes, Logout, Register, GetQuota (core `v0.6.0`)
+- [x] H2 ActivityService reads + SearchActivities + StatsService.GetOverview + ListHomeFeed + signed content (core `v0.6.0`)
+- [x] H3 GetStats, GetTrainingLoad, ListRecords, GetBestEffortHistory, GetHeatmap, SegmentService, MetricsService, SettingsService (core `v0.6.0`)
 - [x] H4 CountUnread, StreamNotifications, ExternalAccountService, SocialService, GetQuota,
-      AuthService account RPCs (core `feat/transport-instance-auth`)
-- [x] H5 StreamActivityEvents, authorized-apps page (core `feat/transport-instance-auth`);
+      AuthService account RPCs (core `v0.6.0`)
+- [x] H5 StreamActivityEvents, authorized-apps page (core `v0.6.0`);
       buf push is a tag-gated CI job waiting for the BSR org + `BUF_TOKEN`
 - [x] AdminService parity + planned RPCs (previews, custom best efforts, segments, Complete2FA)
 - [x] Remaining planned RPCs: the six `MetricsService` store RPCs (+ `/api/metrics`),
       `DeleteExternalAccount`, `RotateWebhookToken`, `ListNotificationPreferences`,
       `UpdateNotificationPreferences`; `StreamAdminEvents` emits every enum type; maintenance
-      jobs persisted (core `feat/transport-instance-auth`). No RPC is left "planned".
-- [x] H6 device authorization grant (core `feat/device-authorization`): `POST /oauth/device_authorization`,
+      jobs persisted (core `v0.6.0`). No RPC is left "planned".
+- [x] H6 device authorization grant (core `v0.6.0`): `POST /oauth/device_authorization`,
       `grant_type=urn:ietf:params:oauth:grant-type:device_code` at the token endpoint, `/oauth/device`
       verification page, `AuthService.LookupDeviceAuthorization` / `DecideDeviceAuthorization` under the
       `devices:read` / `devices:write` family, `device_authorization_endpoint` in the AS metadata
