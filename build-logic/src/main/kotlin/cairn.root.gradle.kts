@@ -13,7 +13,17 @@ spotless {
         ktlint(ktlintVersion)
     }
     format("misc") {
-        target("*.md", "*.yml", "*.yaml", ".github/**/*.yml", "config/**/*.yml", "*.toml", "gradle/*.toml")
+        target(
+            "*.md",
+            "docs/**/*.md",
+            "*.yml",
+            "*.yaml",
+            ".github/**/*.yml",
+            "config/**/*.yml",
+            "*.toml",
+            "gradle/*.toml",
+        )
+        targetExclude("**/build/**", "**/.gradle/**")
         trimTrailingWhitespace()
         endWithNewline()
     }

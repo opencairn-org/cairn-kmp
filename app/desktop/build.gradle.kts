@@ -7,11 +7,16 @@ plugins {
     id("dev.zacsweers.metro")
     id("cairn.quality")
     id("cairn.licenses")
+    alias(libs.plugins.cyclonedx)
+    alias(libs.plugins.conveyor)
 }
 
 licenseReport {
     configurations = arrayOf("runtimeClasspath")
 }
+
+// Conveyor and the Compose packager read the project version; CI passes the tag via -Pcairn.versionName.
+version = (project.findProperty("cairn.versionName") as String?)?.substringBefore('-') ?: "0.1.0"
 
 kotlin {
     jvmToolchain(25)

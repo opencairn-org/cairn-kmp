@@ -35,7 +35,8 @@ kover = "0.9.11"
 dependency-analysis = "3.19.2"
 license-report = "3.1.4"
 pitest = "1.15.0"
-cyclonedx = "1.4.0"
+cyclonedx = "3.5.1"
+conveyor = "2.0"
 android-compileSdk = "37"
 android-minSdk = "26"
 android-targetSdk = "37"
@@ -125,3 +126,4 @@ dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.r
 license-report = { id = "com.github.jk1.dependency-license-report", version.ref = "license-report" }
 pitest = { id = "info.solidsoft.pitest", version.ref = "pitest" }
 cyclonedx = { id = "org.cyclonedx.bom", version.ref = "cyclonedx" }
+conveyor = { id = "dev.hydraulic.conveyor", version.ref = "conveyor" }

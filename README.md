@@ -47,6 +47,11 @@ release engineering); `docs/adr/` records the decisions; `docs/plan.md` is the p
 `docs/handover.md` is what cairn-core implements for this client. The short version: proto RPCs
 only, SQLDelight as the source of truth, Compose Multiplatform UI, Metro for DI.
 
+## Releasing
+
+`docs/releasing.md`: one-time secrets (upload keystore, Conveyor key), `make release`, what
+each release contains and how to verify it.
+
 ## Contributing
 
 See `CONTRIBUTING.md`. Security reports: `SECURITY.md`.

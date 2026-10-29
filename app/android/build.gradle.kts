@@ -2,6 +2,7 @@ plugins {
     id("cairn.android.application")
     id("dev.zacsweers.metro")
     id("cairn.licenses")
+    alias(libs.plugins.cyclonedx)
 }
 
 licenseReport {
