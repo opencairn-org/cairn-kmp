@@ -42,7 +42,7 @@ Tags with a pre-release suffix (`v0.4.0-rc.1`) become GitHub pre-releases.
 |---|---|---|
 | `cairn-<v>-android.apk` | `assembleGithubRelease` (R8, resource shrinking) | upload keystore + cosign bundle + provenance attestation |
 | `cairn-<v>-android.cdx.json` | CycloneDX Gradle plugin | cosign bundle |
-| Linux `.deb`/tarball, Windows `.msix`/zip, macOS `.dmg` | Conveyor | Conveyor (self-signed until certificates exist) + provenance |
+| Linux `.deb`/tarball, Windows `.msix`/zip, macOS `.zip` (Apple Silicon) | Conveyor | Conveyor (self-signed until certificates exist) + provenance |
 | `cairn-<v>.spdx.json` | syft over the source tree | — |
 | `checksums.txt` | `sha256sum` | — |
 

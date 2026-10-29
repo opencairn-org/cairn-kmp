@@ -12,7 +12,7 @@ Releases are published on the [GitHub releases page](https://github.com/opencair
 
 - **Android:** `cairn-<version>-android.apk`, signed; the app checks that page for updates.
   A Play Store listing follows after 1.0.0.
-- **Desktop:** Linux (`.deb`, tarball), Windows (`.msix`, zip) and macOS (`.dmg`) packages
+- **Desktop:** Linux (`.deb`, tarball), Windows (`.msix`, zip) and macOS (`.zip`) packages
   built with Conveyor, with automatic updates.
 - **iOS:** TestFlight, once Apple signing is set up.
 

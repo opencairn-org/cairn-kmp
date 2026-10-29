@@ -104,7 +104,7 @@ jobs:
       - name: Build desktop packages with Conveyor (Linux, Windows, macOS from one runner)
         uses: hydraulic-software/conveyor/actions/build@7370ce828ff1cbc38b95426ffb2fd613492016d5 # v22.3
         with:
-          command: make copied-site
+          command: make site   # build only; publish uploads output/
           extra_flags: -Kapp.version=${GITHUB_REF_NAME#v}
           signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
           agree_to_license: 1
