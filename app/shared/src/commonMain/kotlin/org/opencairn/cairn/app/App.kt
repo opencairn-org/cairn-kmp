@@ -54,6 +54,8 @@ import org.opencairn.cairn.feature.activities.ActivityDetailScreen
 import org.opencairn.cairn.feature.activities.ActivityDetailViewModel
 import org.opencairn.cairn.feature.activities.ActivityMapScreen
 import org.opencairn.cairn.feature.activities.ActivityStreamsScreen
+import org.opencairn.cairn.feature.login.ApproveDeviceScreen
+import org.opencairn.cairn.feature.login.ApproveDeviceViewModel
 import org.opencairn.cairn.feature.login.LoginScreen
 import org.opencairn.cairn.feature.login.LoginViewModel
 import org.opencairn.cairn.feature.overview.OverviewScreen
@@ -77,6 +79,7 @@ private val navSavedStateConfiguration =
                     subclass(Route.Overview::class)
                     subclass(Route.Activities::class)
                     subclass(Route.Settings::class)
+                    subclass(Route.ApproveDevice::class)
                     subclass(Route.ActivityDetail::class)
                     subclass(Route.ActivityMap::class)
                     subclass(Route.ActivityStreams::class)
@@ -226,9 +229,21 @@ private fun AppNavDisplay(
 
                 is Route.Settings -> {
                     NavEntry(key) {
-                        SettingsScreen(user, account, graph.platform.appVersion) {
+                        SettingsScreen(
+                            user,
+                            account,
+                            graph.platform.appVersion,
+                            onApproveDevice = { backStack.add(Route.ApproveDevice) },
+                        ) {
                             scope.launch { graph.sessionRepository.signOut() }
                         }
+                    }
+                }
+
+                is Route.ApproveDevice -> {
+                    NavEntry(key) {
+                        val vm = viewModel { ApproveDeviceViewModel(graph.deviceApprovalRepository) }
+                        ApproveDeviceScreen(vm, onBack = { backStack.removeLastOrNull() })
                     }
                 }
 
@@ -246,13 +261,24 @@ private fun Route.label(): String =
         Route.Overview -> stringResource(Res.string.nav_overview)
         Route.Activities -> stringResource(Res.string.nav_activities)
         Route.Settings -> stringResource(Res.string.nav_settings)
-        is Route.ActivityDetail, is Route.ActivityMap, is Route.ActivityStreams -> ""
+        is Route.ActivityDetail, is Route.ActivityMap, is Route.ActivityStreams, Route.ApproveDevice -> ""
     }
 
 private fun Route.icon() =
     when (this) {
-        Route.Overview -> Icons.Default.Home
-        Route.Activities -> Icons.AutoMirrored.Filled.List
-        Route.Settings -> Icons.Default.Settings
-        is Route.ActivityDetail, is Route.ActivityMap, is Route.ActivityStreams -> Icons.AutoMirrored.Filled.List
+        Route.Overview -> {
+            Icons.Default.Home
+        }
+
+        Route.Activities -> {
+            Icons.AutoMirrored.Filled.List
+        }
+
+        Route.Settings -> {
+            Icons.Default.Settings
+        }
+
+        is Route.ActivityDetail, is Route.ActivityMap, is Route.ActivityStreams, Route.ApproveDevice -> {
+            Icons.AutoMirrored.Filled.List
+        }
     }

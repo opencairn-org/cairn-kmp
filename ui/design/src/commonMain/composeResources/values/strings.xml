@@ -95,4 +95,19 @@
     <string name="action_back">Back</string>
     <string name="detail_no_track">This activity has no GPS track.</string>
     <string name="detail_no_streams">This activity has no recorded data streams.</string>
+    <string name="login_with_code">Sign in from another device</string>
+    <string name="device_code_title">Enter this code on a device where you’re already signed in</string>
+    <string name="device_code_open">or open %1$s</string>
+    <string name="device_code_waiting">Waiting for approval…</string>
+    <string name="device_code_cancel">Cancel</string>
+    <string name="approve_device_title">Sign in another device</string>
+    <string name="approve_device_code_label">Code shown on the device</string>
+    <string name="approve_device_lookup">Look up</string>
+    <string name="approve_device_wants">%1$s wants to sign in to your account. It will be able to:</string>
+    <string name="approve_device_warning">Only approve a code you read from a device in front of you. Someone who sends you a code is trying to get into your account.</string>
+    <string name="approve_device_approve">Sign in this device</string>
+    <string name="approve_device_deny">Deny</string>
+    <string name="approve_device_done_approved">The device is signed in.</string>
+    <string name="approve_device_done_denied">The request was denied.</string>
+    <string name="settings_devices">Devices</string>
 </resources>

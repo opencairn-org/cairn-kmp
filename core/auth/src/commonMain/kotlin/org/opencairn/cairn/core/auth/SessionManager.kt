@@ -5,6 +5,7 @@ import app.cash.sqldelight.coroutines.mapToOneOrNull
 import cairn.v1.GetCurrentUserRequest
 import cairn.v1.GetInstanceInfoRequest
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
@@ -18,6 +19,7 @@ import org.opencairn.cairn.core.database.CairnDb
 import org.opencairn.cairn.core.database.upsertAccount
 import org.opencairn.cairn.core.database.upsertServer
 import org.opencairn.cairn.core.domain.model.AccountKey
+import org.opencairn.cairn.core.domain.model.DeviceSignIn
 import org.opencairn.cairn.core.domain.model.Server
 import org.opencairn.cairn.core.domain.model.User
 import org.opencairn.cairn.core.domain.repository.SessionRepository
@@ -28,6 +30,7 @@ import org.opencairn.cairn.core.network.connect.RequestAuthenticator
 import org.opencairn.cairn.core.network.connect.apiResult
 import kotlin.concurrent.Volatile
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 /** Read-only scopes the viewer requests (core's scope families); a write-capable release adds `:write`. */
 val READ_SCOPES =
@@ -41,6 +44,12 @@ val READ_SCOPES =
         "notifications:read",
         "connections:read",
     )
+
+/** Approving sign-ins of other devices (RFC 8628) from this one. */
+val DEVICE_SCOPES = listOf("devices:read", "devices:write")
+
+/** Everything the app asks for at registration and sign-in. */
+val APP_SCOPES = READ_SCOPES + DEVICE_SCOPES
 
 /**
  * Owns sign-in state: servers, the active account, its tokens (in the [SecretStore]) and the
@@ -124,8 +133,7 @@ class SessionManager(
         apiResult {
             val metadata = oauth.metadata(server.baseUrl)
             val clientId = ensureClient(server.baseUrl, metadata)
-            val supported = metadata.scopesSupported
-            val scope = READ_SCOPES.filter { supported.isEmpty() || it in supported }.joinToString(" ")
+            val scope = requestedScope(metadata)
             val config =
                 AuthorizeConfig(
                     authorizationEndpoint = metadata.authorizationEndpoint,
@@ -135,16 +143,7 @@ class SessionManager(
                     redirectUri = platform.redirectUri,
                 )
             val tokens = platform.authFlow.authorize(config)
-            val set =
-                TokenSet(
-                    kind = AuthKind.OAUTH,
-                    accessToken = tokens.accessToken,
-                    refreshToken = tokens.refreshToken,
-                    expiresAtEpochSeconds = tokens.expiresIn?.let { clock.now().epochSeconds + it },
-                    scope = tokens.scope ?: scope,
-                    clientId = clientId,
-                )
-            activate(server, set)
+            activate(server, tokens.toTokenSet(clientId, scope))
         }
 
     override suspend fun signInWithToken(
@@ -153,6 +152,55 @@ class SessionManager(
     ): Result<User> =
         apiResult {
             activate(server, TokenSet(kind = AuthKind.PAT, accessToken = token.trim()))
+        }
+
+    override suspend fun startDeviceSignIn(server: Server): Result<DeviceSignIn> =
+        apiResult {
+            val metadata = oauth.metadata(server.baseUrl)
+            val endpoint =
+                metadata.deviceAuthorizationEndpoint
+                    ?: throw AppError.Server("this server does not offer sign-in from another device")
+            val scope = requestedScope(metadata)
+            val response =
+                try {
+                    oauth.deviceAuthorize(endpoint, ensureClient(server.baseUrl, metadata), scope)
+                } catch (e: OAuthRequestException) {
+                    // A client registered before the server knew the device grant: register once more.
+                    if (e.error != "unauthorized_client") throw AppError.Server(e.message ?: e.error, e)
+                    forgetClient(server.baseUrl)
+                    oauth.deviceAuthorize(endpoint, ensureClient(server.baseUrl, metadata), scope)
+                }
+            DeviceSignIn(
+                deviceCode = response.deviceCode,
+                userCode = response.userCode,
+                verificationUri = response.verificationUri,
+                verificationUriComplete = response.verificationUriComplete ?: response.verificationUri,
+                expiresAt = clock.now() + response.expiresIn.seconds,
+                intervalSeconds = response.interval.coerceAtLeast(1),
+            )
+        }
+
+    override suspend fun completeDeviceSignIn(
+        server: Server,
+        signIn: DeviceSignIn,
+    ): Result<User> =
+        apiResult {
+            val metadata = oauth.metadata(server.baseUrl)
+            val clientId = ensureClient(server.baseUrl, metadata)
+            var interval = signIn.intervalSeconds
+            while (true) {
+                if (clock.now() >= signIn.expiresAt) throw AppError.Unauthenticated("the code expired; start again")
+                delay(interval.seconds)
+                when (val poll = oauth.pollDevice(metadata.tokenEndpoint, clientId, signIn.deviceCode)) {
+                    is DevicePoll.Tokens -> return@apiResult activate(server, poll.tokens.toTokenSet(clientId))
+                    DevicePoll.Pending -> Unit
+                    DevicePoll.SlowDown -> interval += SLOW_DOWN_SECONDS
+                    DevicePoll.Denied -> throw AppError.PermissionDenied("the sign-in was denied on the other device")
+                    DevicePoll.Expired -> throw AppError.Unauthenticated("the code expired; start again")
+                }
+            }
+            @Suppress("UNREACHABLE_CODE")
+            error("unreachable")
         }
 
     override suspend fun refreshCurrentUser(): Result<User> =
@@ -226,18 +274,24 @@ class SessionManager(
         return user
     }
 
+    /**
+     * The client id registered on this server. A stored registration whose scopes miss what
+     * the app asks for now (an older release registered it) is replaced by a new one.
+     */
     private suspend fun ensureClient(
         baseUrl: String,
         metadata: OAuthMetadata,
     ): String {
-        val existing =
-            withContext(dispatchers.io) {
-                db.serversQueries
-                    .byUrl(baseUrl)
-                    .executeAsOneOrNull()
-                    ?.oauth_client_id
-            }
-        if (existing != null) return existing
+        val row = withContext(dispatchers.io) { db.serversQueries.byUrl(baseUrl).executeAsOneOrNull() }
+        val wanted = requestedScope(metadata).split(' ').filter { it.isNotBlank() }.toSet()
+        val stored =
+            row
+                ?.oauth_client_scope
+                ?.split(' ')
+                ?.filter { it.isNotBlank() }
+                ?.toSet()
+        val existing = row?.oauth_client_id
+        if (existing != null && stored != null && stored.containsAll(wanted)) return existing
         val endpoint =
             metadata.registrationEndpoint
                 ?: throw AppError.Server("this server does not allow apps to register (no registration_endpoint)")
@@ -247,7 +301,7 @@ class SessionManager(
                 ClientRegistrationRequest(
                     clientName = "Cairn app",
                     redirectUris = listOf(platform.redirectUri),
-                    scope = READ_SCOPES.joinToString(" "),
+                    scope = APP_SCOPES.joinToString(" "),
                     softwareId = SOFTWARE_ID,
                     softwareVersion = appVersion,
                 ),
@@ -260,10 +314,32 @@ class SessionManager(
                 oauth = true,
                 clientId = registered.clientId,
                 now = clock.now().epochSeconds,
+                clientScope = registered.scope.ifBlank { wanted.joinToString(" ") },
             )
         }
         return registered.clientId
     }
+
+    /** The catalog scopes the app wants, limited to what this server advertises. */
+    private fun requestedScope(metadata: OAuthMetadata): String {
+        val supported = metadata.scopesSupported
+        return APP_SCOPES.filter { supported.isEmpty() || it in supported }.joinToString(" ")
+    }
+
+    private fun TokenResponse.toTokenSet(
+        clientId: String,
+        requestedScope: String = "",
+    ) = TokenSet(
+        kind = AuthKind.OAUTH,
+        accessToken = accessToken,
+        refreshToken = refreshToken,
+        expiresAtEpochSeconds = expiresIn?.let { clock.now().epochSeconds + it },
+        scope = scope ?: requestedScope,
+        clientId = clientId,
+    )
+
+    private suspend fun forgetClient(baseUrl: String) =
+        withContext(dispatchers.io) { db.serversQueries.setClient(null, null, baseUrl) }
 
     private suspend fun refresh(tokens: TokenSet): TokenSet? =
         refreshMutex.withLock {
@@ -361,6 +437,7 @@ class SessionManager(
     private companion object {
         const val SOFTWARE_ID = "org.opencairn.cairn"
         const val REFRESH_AHEAD_SECONDS = 60L
+        const val SLOW_DOWN_SECONDS = 5L
         const val PENDING_USER = "pending"
     }
 }

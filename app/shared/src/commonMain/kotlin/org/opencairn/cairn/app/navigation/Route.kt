@@ -11,6 +11,9 @@ sealed interface Route : NavKey {
 
     @Serializable data object Settings : Route
 
+    /** Approve another device's sign-in code (reached from Settings). */
+    @Serializable data object ApproveDevice : Route
+
     @Serializable data class ActivityDetail(
         val id: String,
     ) : Route

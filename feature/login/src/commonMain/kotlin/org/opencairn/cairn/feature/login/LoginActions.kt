@@ -5,6 +5,8 @@ data class LoginActions(
     val onServerInput: (String) -> Unit,
     val onDiscover: () -> Unit,
     val onBrowser: () -> Unit,
+    val onCode: () -> Unit,
+    val onCancelCode: () -> Unit,
     val onToggleToken: () -> Unit,
     val onTokenInput: (String) -> Unit,
     val onTokenSignIn: () -> Unit,

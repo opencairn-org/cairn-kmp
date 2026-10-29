@@ -24,6 +24,7 @@ data class OAuthMetadata(
     @SerialName("token_endpoint") val tokenEndpoint: String,
     @SerialName("revocation_endpoint") val revocationEndpoint: String? = null,
     @SerialName("registration_endpoint") val registrationEndpoint: String? = null,
+    @SerialName("device_authorization_endpoint") val deviceAuthorizationEndpoint: String? = null,
     @SerialName("scopes_supported") val scopesSupported: List<String> = emptyList(),
     @SerialName("code_challenge_methods_supported") val codeChallengeMethods: List<String> = emptyList(),
 )
@@ -32,7 +33,8 @@ data class OAuthMetadata(
 data class ClientRegistrationRequest(
     @SerialName("client_name") val clientName: String,
     @SerialName("redirect_uris") val redirectUris: List<String>,
-    @SerialName("grant_types") val grantTypes: List<String> = listOf("authorization_code", "refresh_token"),
+    @SerialName("grant_types") val grantTypes: List<String> =
+        listOf("authorization_code", "refresh_token", DEVICE_CODE_GRANT),
     val scope: String,
     @SerialName("token_endpoint_auth_method") val tokenEndpointAuthMethod: String = "none",
     @SerialName("software_id") val softwareId: String,
@@ -53,6 +55,41 @@ data class TokenResponse(
     @SerialName("refresh_token") val refreshToken: String? = null,
     val scope: String? = null,
 )
+
+/** RFC 8628 §3.2: what the device shows and polls with. */
+@Serializable
+data class DeviceAuthorizationResponse(
+    @SerialName("device_code") val deviceCode: String,
+    @SerialName("user_code") val userCode: String,
+    @SerialName("verification_uri") val verificationUri: String,
+    @SerialName("verification_uri_complete") val verificationUriComplete: String? = null,
+    @SerialName("expires_in") val expiresIn: Long,
+    val interval: Long = 5,
+)
+
+/** One poll of the token endpoint during a device sign-in. */
+sealed interface DevicePoll {
+    data class Tokens(
+        val tokens: TokenResponse,
+    ) : DevicePoll
+
+    data object Pending : DevicePoll
+
+    /** Polling too fast: back off by five seconds (RFC 8628 §3.5). */
+    data object SlowDown : DevicePoll
+
+    data object Denied : DevicePoll
+
+    data object Expired : DevicePoll
+}
+
+/** An OAuth error response (`error` + `error_description`) the caller wants to tell apart. */
+class OAuthRequestException(
+    val error: String,
+    val description: String,
+) : Exception("$error: $description".trim(':', ' '))
+
+const val DEVICE_CODE_GRANT = "urn:ietf:params:oauth:grant-type:device_code"
 
 @Serializable
 data class OAuthErrorBody(
@@ -113,6 +150,55 @@ class OAuthHttp(
             throw oauthError(text, "token refresh failed")
         }
         return json.decodeFromString(text)
+    }
+
+    /** Starts a device sign-in. Throws [OAuthRequestException] on an OAuth error so callers can react to its code. */
+    suspend fun deviceAuthorize(
+        endpoint: String,
+        clientId: String,
+        scope: String,
+    ): DeviceAuthorizationResponse {
+        val response =
+            http.submitForm(
+                url = endpoint,
+                formParameters =
+                    parameters {
+                        append("client_id", clientId)
+                        append("scope", scope)
+                    },
+            )
+        val text = response.bodyAsText()
+        if (!response.status.isSuccess()) {
+            val err = parseError(text) ?: throw AppError.Server("device sign-in failed")
+            throw OAuthRequestException(err.error, err.description)
+        }
+        return json.decodeFromString(text)
+    }
+
+    suspend fun pollDevice(
+        tokenEndpoint: String,
+        clientId: String,
+        deviceCode: String,
+    ): DevicePoll {
+        val response =
+            http.submitForm(
+                url = tokenEndpoint,
+                formParameters =
+                    parameters {
+                        append("grant_type", DEVICE_CODE_GRANT)
+                        append("device_code", deviceCode)
+                        append("client_id", clientId)
+                    },
+            )
+        val text = response.bodyAsText()
+        if (response.status.isSuccess()) return DevicePoll.Tokens(json.decodeFromString(text))
+        return when (parseError(text)?.error) {
+            "authorization_pending" -> DevicePoll.Pending
+            "slow_down" -> DevicePoll.SlowDown
+            "access_denied" -> DevicePoll.Denied
+            "expired_token" -> DevicePoll.Expired
+            else -> throw oauthError(text, "device sign-in failed")
+        }
     }
 
     suspend fun revoke(

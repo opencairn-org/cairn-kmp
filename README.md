@@ -38,7 +38,8 @@ make help         # every target
 ```
 
 Point the app at a cairn-core instance on first start; it registers itself with the server's
-OAuth 2.1 authorization server and signs you in through your browser.
+OAuth 2.1 authorization server and signs you in through your browser, or shows a code that a
+device where you are already signed in approves (RFC 8628).
 
 ## Architecture
 

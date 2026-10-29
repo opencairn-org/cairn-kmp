@@ -2,6 +2,7 @@ package org.opencairn.cairn.core.domain.repository
 
 import kotlinx.coroutines.flow.Flow
 import org.opencairn.cairn.core.domain.model.AccountKey
+import org.opencairn.cairn.core.domain.model.DeviceSignIn
 import org.opencairn.cairn.core.domain.model.Server
 import org.opencairn.cairn.core.domain.model.User
 
@@ -18,6 +19,15 @@ interface SessionRepository {
     suspend fun signInWithToken(
         server: Server,
         token: String,
+    ): Result<User>
+
+    /** Asks the server for a code pair; the UI shows the [DeviceSignIn] while [completeDeviceSignIn] waits. */
+    suspend fun startDeviceSignIn(server: Server): Result<DeviceSignIn>
+
+    /** Polls until the code is approved (signed in), denied or expired; cancelling stops the wait. */
+    suspend fun completeDeviceSignIn(
+        server: Server,
+        signIn: DeviceSignIn,
     ): Result<User>
 
     suspend fun refreshCurrentUser(): Result<User>

@@ -8,10 +8,19 @@ fun CairnDb.upsertServer(
     oauth: Boolean,
     clientId: String?,
     now: Long,
+    clientScope: String? = null,
 ) = transaction {
-    serversQueries.insertOrIgnore(baseUrl, version, if (federation) 1 else 0, if (oauth) 1 else 0, clientId, now)
+    serversQueries.insertOrIgnore(
+        baseUrl,
+        version,
+        if (federation) 1 else 0,
+        if (oauth) 1 else 0,
+        clientId,
+        clientScope,
+        now,
+    )
     serversQueries.updateInfo(version, if (federation) 1 else 0, if (oauth) 1 else 0, now, baseUrl)
-    if (clientId != null) serversQueries.setClientId(clientId, baseUrl)
+    if (clientId != null) serversQueries.setClient(clientId, clientScope, baseUrl)
 }
 
 @Suppress("LongParameterList")

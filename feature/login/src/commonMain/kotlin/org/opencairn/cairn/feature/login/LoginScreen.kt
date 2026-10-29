@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,6 +30,7 @@ import org.opencairn.cairn.core.domain.model.Server
 import org.opencairn.cairn.ui.design.resources.Res
 import org.opencairn.cairn.ui.design.resources.login_token_label
 import org.opencairn.cairn.ui.design.resources.login_with_browser
+import org.opencairn.cairn.ui.design.resources.login_with_code
 import org.opencairn.cairn.ui.design.resources.login_with_token
 import org.opencairn.cairn.ui.design.resources.server_continue
 import org.opencairn.cairn.ui.design.resources.server_title
@@ -46,6 +48,8 @@ fun LoginScreen(viewModel: LoginViewModel) {
                 onServerInput = viewModel::onServerInput,
                 onDiscover = viewModel::discover,
                 onBrowser = viewModel::signInWithBrowser,
+                onCode = viewModel::signInWithCode,
+                onCancelCode = viewModel::cancelDeviceSignIn,
                 onToggleToken = viewModel::toggleTokenEntry,
                 onTokenInput = viewModel::onTokenInput,
                 onTokenSignIn = viewModel::signInWithToken,
@@ -67,12 +71,15 @@ fun LoginContent(
         Column(modifier = Modifier.widthIn(max = 420.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(Res.string.server_title), style = MaterialTheme.typography.headlineSmall)
             val server = state.server
-            if (server == null) {
-                ServerStep(state, actions)
-            } else {
-                SignInStep(server, state, actions)
+            val device = state.device
+            when {
+                server == null -> ServerStep(state, actions)
+                device != null -> DeviceCodeStep(device, actions.onCancelCode)
+                else -> SignInStep(server, state, actions)
             }
-            if (state.busy) CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            if (state.busy && device == null) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            }
             state.error?.let {
                 Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
             }
@@ -122,6 +129,13 @@ private fun ColumnScope.SignInStep(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(stringResource(Res.string.login_with_browser))
+        }
+        OutlinedButton(
+            onClick = actions.onCode,
+            enabled = !state.busy && server.oauthEnabled,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(Res.string.login_with_code))
         }
         TextButton(onClick = actions.onToggleToken, enabled = !state.busy) {
             Text(stringResource(Res.string.login_with_token))

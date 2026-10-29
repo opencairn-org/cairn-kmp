@@ -49,11 +49,17 @@ private class FakeCore(
         {"issuer":"$BASE","authorization_endpoint":"$BASE/oauth/authorize",
          "token_endpoint":"$BASE/oauth/token","revocation_endpoint":"$BASE/oauth/revoke",
          "registration_endpoint":"$BASE/oauth/register",
+         "device_authorization_endpoint":"$BASE/oauth/device_authorization",
          "scopes_supported":["activities:read","profile:read"],
          "code_challenge_methods_supported":["S256"]}
         """.trimIndent()
     private val tokenResponse =
         """{"access_token":"cairn_at_2","token_type":"Bearer","expires_in":3600,"refresh_token":"cairn_rt_2"}"""
+
+    /** Device flow script: what each poll of the token endpoint answers, in order. */
+    val devicePolls = ArrayDeque<String>()
+    var registrations = 0
+    var deviceAuthorizationError: String? = null
 
     fun engine() =
         MockEngine { request ->
@@ -71,7 +77,36 @@ private class FakeCore(
             }
 
             path.endsWith("/oauth/register") -> {
-                respond("""{"client_id":"cairn_dcr_1","scope":"activities:read"}""", HttpStatusCode.Created, json)
+                // Echo the requested scope, as core does when every scope is in its catalog.
+                val body = (request.body as OutgoingContent.ByteArrayContent).bytes().decodeToString()
+                val scope =
+                    Regex("\"scope\":\"([^\"]*)\"")
+                        .find(body)
+                        ?.groupValues
+                        ?.get(1)
+                        .orEmpty()
+                val id = "cairn_dcr_${++registrations}"
+                respond("""{"client_id":"$id","scope":"$scope"}""", HttpStatusCode.Created, json)
+            }
+
+            path.endsWith("/oauth/device_authorization") -> {
+                deviceAuthorizationError?.let { err ->
+                    deviceAuthorizationError = null
+                    return respond("""{"error":"$err","error_description":"no"}""", HttpStatusCode.BadRequest, json)
+                }
+                respond(
+                    """{"device_code":"cairn_dc_1","user_code":"1234-5678","verification_uri":"$BASE/oauth/device",
+                       "verification_uri_complete":"$BASE/oauth/device?user_code=1234-5678","expires_in":600,"interval":5}""",
+                    HttpStatusCode.OK,
+                    json,
+                )
+            }
+
+            path.endsWith("/oauth/token") && formField(request, "grant_type") == DEVICE_CODE_GRANT -> {
+                when (val next = devicePolls.removeFirstOrNull()) {
+                    null, "ok" -> respond(tokenResponse, HttpStatusCode.OK, json)
+                    else -> respond("""{"error":"$next"}""", HttpStatusCode.BadRequest, json)
+                }
             }
 
             path.endsWith("/oauth/token") -> {
@@ -98,6 +133,20 @@ private class FakeCore(
                 respond("""{"code":"unimplemented"}""", HttpStatusCode.NotImplemented, json)
             }
         }
+    }
+
+    private fun formField(
+        request: HttpRequestData,
+        name: String,
+    ): String? {
+        val body = (request.body as? OutgoingContent.ByteArrayContent)?.bytes()?.decodeToString() ?: return null
+        return body
+            .split('&')
+            .map { it.substringBefore('=') to it.substringAfter('=', "") }
+            .firstOrNull { it.first == name }
+            ?.second
+            ?.replace("%3A", ":")
+            ?.replace("%2F", "/")
     }
 
     private fun MockRequestHandleScope.currentUser(auth: String?): HttpResponseData {
@@ -234,4 +283,79 @@ class SessionManagerTest {
             )
             assertTrue(f.session.headers().isEmpty())
         }
+
+    @Test
+    fun staleRegistrationIsReplacedWhenScopesAreMissing() =
+        runTest {
+            val f = fixture()
+            f.session.signIn(server).getOrThrow()
+            f.session.signOut()
+            // An older release registered this server with fewer scopes.
+            f.db.serversQueries.setClient("cairn_dcr_old", "activities:read", BASE)
+            f.session.signIn(server).getOrThrow()
+            assertEquals(2, f.core.count("/oauth/register"))
+            assertEquals(
+                "cairn_dcr_2",
+                f.db.serversQueries
+                    .byUrl(BASE)
+                    .executeAsOne()
+                    .oauth_client_id,
+            )
+            f.session.signIn(server).getOrThrow()
+            assertEquals(2, f.core.count("/oauth/register"))
+        }
+
+    @Test
+    fun deviceSignInShowsCodeThenPollsUntilApproved() =
+        runTest {
+            val f = fixture { "cairn_at_2" }
+            val code = f.session.startDeviceSignIn(server).getOrThrow()
+            assertEquals("1234-5678", code.userCode)
+            assertEquals("$BASE/oauth/device?user_code=1234-5678", code.verificationUriComplete)
+            assertEquals(5, code.intervalSeconds)
+            f.core.devicePolls.addAll(listOf("authorization_pending", "slow_down", "authorization_pending", "ok"))
+            val user = f.session.completeDeviceSignIn(server, code).getOrThrow()
+            assertEquals("jo", user.username)
+            assertEquals(4, f.core.requests.count { formField(it, "grant_type") == DEVICE_CODE_GRANT })
+            val registration = f.core.requests.first { it.url.encodedPath.endsWith("/oauth/register") }
+            val body = (registration.body as OutgoingContent.ByteArrayContent).bytes().decodeToString()
+            assertTrue(body.contains(DEVICE_CODE_GRANT), body)
+            assertTrue(body.contains("devices:write"), body)
+        }
+
+    @Test
+    fun deviceSignInDeniedOrExpiredFails() =
+        runTest {
+            val f = fixture()
+            val code = f.session.startDeviceSignIn(server).getOrThrow()
+            f.core.devicePolls.add("access_denied")
+            assertIs<AppError.PermissionDenied>(f.session.completeDeviceSignIn(server, code).exceptionOrNull())
+            f.core.devicePolls.add("expired_token")
+            assertIs<AppError.Unauthenticated>(f.session.completeDeviceSignIn(server, code).exceptionOrNull())
+            assertNull(f.session.activeAccountKey())
+        }
+
+    @Test
+    fun deviceSignInReRegistersAClientWithoutTheGrant() =
+        runTest {
+            val f = fixture()
+            f.session.signIn(server).getOrThrow()
+            f.session.signOut()
+            f.core.deviceAuthorizationError = "unauthorized_client"
+            f.session.startDeviceSignIn(server).getOrThrow()
+            assertEquals(2, f.core.count("/oauth/register"))
+        }
+
+    private fun formField(
+        request: HttpRequestData,
+        name: String,
+    ): String? =
+        (request.body as? OutgoingContent.ByteArrayContent)
+            ?.bytes()
+            ?.decodeToString()
+            ?.split('&')
+            ?.firstOrNull { it.startsWith("$name=") }
+            ?.substringAfter('=')
+            ?.replace("%3A", ":")
+            ?.replace("%2F", "/")
 }

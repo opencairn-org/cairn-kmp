@@ -24,6 +24,7 @@ okio = "3.18.2"
 oidc = "0.18.4"
 maplibre = "0.20.0"
 vico = "3.3.1"
+qrose = "1.3.1"
 turbine = "1.2.1"
 androidx-activity = "1.13.0"
 androidx-core = "1.19.1"
@@ -96,6 +97,7 @@ maplibre-runtime-linux-x64 = { module = "org.maplibre.compose:maplibre-compose-r
 maplibre-runtime-windows-x64 = { module = "org.maplibre.compose:maplibre-compose-runtime-opengl-windows-x64", version.ref = "maplibre" }
 maplibre-runtime-macos-arm64 = { module = "org.maplibre.compose:maplibre-compose-runtime-metal-macos-arm64", version.ref = "maplibre" }
 vico = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "vico" }
+qrose = { module = "io.github.alexzhirkevich:qrose", version.ref = "qrose" }
 # test
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 # build-logic classpath

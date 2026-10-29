@@ -27,3 +27,14 @@ scope. The app connects to arbitrary instances, so no client id can be baked in.
 
 Every instance works without administrator setup. Desktop needs core to accept any loopback
 port (RFC 8252 §7.3), tracked in the handover.
+
+## Amendment (2026-10-29): sign-in from another device
+
+A device without a convenient browser (or with a remote as keyboard) signs in with the OAuth 2.0
+device authorization grant (RFC 8628): it shows a short code and a QR code of the verification
+link, and a device that is already signed in approves the request after seeing the app name and
+the scopes. The direction matters: the *new* device shows the code, the *trusted* device enters
+it. A code shown by a trusted device would be a bearer credential on a screen. Safeguards from
+the RFC apply on the server: ten-minute expiry, single use, polling with `slow_down`, rate
+limits on code requests and verification, and an OAuth approver can grant at most its own
+scopes. The app asks for `devices:read` / `devices:write` so a signed-in phone can approve.

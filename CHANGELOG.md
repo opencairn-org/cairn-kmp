@@ -35,6 +35,11 @@ Before 1.0.0 a minor bump may contain breaking changes.
   icon, title and page name; on the detail page it slides away while scrolling.
 - Cairn launcher icon (adaptive with monochrome variant and legacy densities) and the desktop
   window and package icon.
+- Sign in from another device (RFC 8628 device authorization): the login screen shows an
+  8-digit code and a QR code of the verification link and waits for approval; Settings gains
+  "Sign in another device", where a signed-in account enters such a code, sees the requesting
+  app and scopes and approves or denies it. The app now asks for the `devices:read` and
+  `devices:write` scopes and re-registers a client that predates the device grant.
 - `make e2e`: end-to-end run of the app graph against a live cairn-core; debug builds allow
   cleartext HTTP to localhost for emulator testing.
 - App shell: bottom navigation (Overview, Activities, Settings) on Navigation 3, settings with

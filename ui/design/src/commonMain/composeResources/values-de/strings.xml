@@ -92,4 +92,19 @@
     <string name="action_back">Zurück</string>
     <string name="detail_no_track">Diese Aktivität hat keine GPS-Spur.</string>
     <string name="detail_no_streams">Diese Aktivität hat keine aufgezeichneten Datenströme.</string>
+    <string name="login_with_code">Über ein anderes Gerät anmelden</string>
+    <string name="device_code_title">Gib diesen Code auf einem Gerät ein, auf dem du bereits angemeldet bist</string>
+    <string name="device_code_open">oder öffne %1$s</string>
+    <string name="device_code_waiting">Warte auf Freigabe…</string>
+    <string name="device_code_cancel">Abbrechen</string>
+    <string name="approve_device_title">Anderes Gerät anmelden</string>
+    <string name="approve_device_code_label">Code auf dem Gerät</string>
+    <string name="approve_device_lookup">Prüfen</string>
+    <string name="approve_device_wants">%1$s möchte sich bei deinem Konto anmelden. Es darf dann:</string>
+    <string name="approve_device_warning">Gib nur einen Code frei, den du von einem Gerät vor dir abliest. Wer dir einen Code schickt, will in dein Konto.</string>
+    <string name="approve_device_approve">Dieses Gerät anmelden</string>
+    <string name="approve_device_deny">Ablehnen</string>
+    <string name="approve_device_done_approved">Das Gerät ist angemeldet.</string>
+    <string name="approve_device_done_denied">Die Anfrage wurde abgelehnt.</string>
+    <string name="settings_devices">Geräte</string>
 </resources>

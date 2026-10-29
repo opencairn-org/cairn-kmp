@@ -6,18 +6,20 @@ CREATE TABLE server (
   federation_enabled INTEGER NOT NULL DEFAULT 0,
   oauth_enabled INTEGER NOT NULL DEFAULT 1,
   oauth_client_id TEXT,
+  -- the scopes the registration allows; a registration lacking what the app asks for is redone
+  oauth_client_scope TEXT,
   last_seen_at INTEGER NOT NULL
 );
 
 insertOrIgnore:
-INSERT OR IGNORE INTO server(base_url, version, federation_enabled, oauth_enabled, oauth_client_id, last_seen_at)
-VALUES (?, ?, ?, ?, ?, ?);
+INSERT OR IGNORE INTO server(base_url, version, federation_enabled, oauth_enabled, oauth_client_id, oauth_client_scope, last_seen_at)
+VALUES (?, ?, ?, ?, ?, ?, ?);
 
 updateInfo:
 UPDATE server SET version = ?, federation_enabled = ?, oauth_enabled = ?, last_seen_at = ? WHERE base_url = ?;
 
-setClientId:
-UPDATE server SET oauth_client_id = ? WHERE base_url = ?;
+setClient:
+UPDATE server SET oauth_client_id = ?, oauth_client_scope = ? WHERE base_url = ?;
 
 byUrl:
 SELECT * FROM server WHERE base_url = ?;

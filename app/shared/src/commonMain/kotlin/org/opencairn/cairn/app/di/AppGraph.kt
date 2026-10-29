@@ -12,11 +12,13 @@ import org.opencairn.cairn.core.common.DefaultDispatcherProvider
 import org.opencairn.cairn.core.common.DispatcherProvider
 import org.opencairn.cairn.core.data.ActivityRepositoryImpl
 import org.opencairn.cairn.core.data.CacheScope
+import org.opencairn.cairn.core.data.DeviceApprovalRepositoryImpl
 import org.opencairn.cairn.core.data.OverviewRepositoryImpl
 import org.opencairn.cairn.core.database.CairnDb
 import org.opencairn.cairn.core.database.DatabaseDriverFactory
 import org.opencairn.cairn.core.database.appDatabase
 import org.opencairn.cairn.core.domain.repository.ActivityRepository
+import org.opencairn.cairn.core.domain.repository.DeviceApprovalRepository
 import org.opencairn.cairn.core.domain.repository.OverviewRepository
 import org.opencairn.cairn.core.domain.repository.SessionRepository
 
@@ -37,6 +39,7 @@ interface AppGraph {
     val sessionRepository: SessionRepository
     val activityRepository: ActivityRepository
     val overviewRepository: OverviewRepository
+    val deviceApprovalRepository: DeviceApprovalRepository
 
     @DependencyGraph.Factory
     fun interface Factory {
@@ -95,4 +98,9 @@ interface AppGraph {
         scope: CacheScope,
         dispatchers: DispatcherProvider,
     ): OverviewRepository = OverviewRepositoryImpl(db, scope, dispatchers)
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun provideDeviceApprovalRepository(scope: CacheScope): DeviceApprovalRepository =
+        DeviceApprovalRepositoryImpl(scope)
 }

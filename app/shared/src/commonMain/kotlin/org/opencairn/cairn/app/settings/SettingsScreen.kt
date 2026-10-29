@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,9 +16,11 @@ import org.opencairn.cairn.core.domain.model.AccountKey
 import org.opencairn.cairn.core.domain.model.User
 import org.opencairn.cairn.ui.design.components.StatRow
 import org.opencairn.cairn.ui.design.resources.Res
+import org.opencairn.cairn.ui.design.resources.approve_device_title
 import org.opencairn.cairn.ui.design.resources.settings_about
 import org.opencairn.cairn.ui.design.resources.settings_account
 import org.opencairn.cairn.ui.design.resources.settings_app_version
+import org.opencairn.cairn.ui.design.resources.settings_devices
 import org.opencairn.cairn.ui.design.resources.settings_server
 import org.opencairn.cairn.ui.design.resources.settings_title
 import org.opencairn.cairn.ui.design.resources.settings_units
@@ -29,6 +32,7 @@ fun SettingsScreen(
     user: User?,
     account: AccountKey?,
     appVersion: String,
+    onApproveDevice: () -> Unit,
     onSignOut: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -46,6 +50,8 @@ fun SettingsScreen(
         }
         Text(stringResource(Res.string.settings_server), style = MaterialTheme.typography.titleMedium)
         account?.let { StatRow("URL", it.serverBaseUrl) }
+        Text(stringResource(Res.string.settings_devices), style = MaterialTheme.typography.titleMedium)
+        OutlinedButton(onClick = onApproveDevice) { Text(stringResource(Res.string.approve_device_title)) }
         Text(stringResource(Res.string.settings_about), style = MaterialTheme.typography.titleMedium)
         Text(stringResource(Res.string.settings_app_version, appVersion), style = MaterialTheme.typography.bodyMedium)
         Button(onClick = onSignOut) { Text(stringResource(Res.string.sign_out)) }

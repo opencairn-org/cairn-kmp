@@ -120,6 +120,19 @@ H3 is complete on core branch `feat/transport-instance-auth`.
   timezone/units; `email` refused with InvalidArgument). Still browser-only: `LoginPassword`,
   `Complete2FA`, `StartOIDCLogin`, `StartOIDCLink` (OAuth 2.1 PKCE for native clients).
 
+## H6. Sign-in from another device (RFC 8628) — done
+
+The device authorization grant for devices without a convenient browser. Core issues a code
+pair at `POST /oauth/device_authorization` (public and dynamically registered clients that hold
+the `urn:ietf:params:oauth:grant-type:device_code` grant, which DCR now includes by default),
+the device polls the token endpoint with `grant_type=urn:ietf:params:oauth:grant-type:device_code`
+and gets `authorization_pending`, `slow_down`, `access_denied`, `expired_token` or tokens. The
+signed-in side approves on `/oauth/device` (browser, session or PAT) or through
+`AuthService.LookupDeviceAuthorization` / `DecideDeviceAuthorization` (scopes `devices:read` /
+`devices:write`); an OAuth approver can grant at most its own scopes. User codes are 8 digits,
+expire after 10 minutes, are single use and unique among live codes; the request and
+verification endpoints are rate-limited per client address.
+
 ## H5. Later
 
 - `ActivityService.StreamActivityEvents` for live list updates. **Done** (core
@@ -588,4 +601,8 @@ as documentation first and enforcement in a minor release with a CHANGELOG note.
 - [x] H5 StreamActivityEvents, authorized-apps page (core `feat/transport-instance-auth`);
       buf push is a tag-gated CI job waiting for the BSR org + `BUF_TOKEN`
 - [x] AdminService parity + planned RPCs (previews, custom best efforts, segments, Complete2FA)
+- [x] H6 device authorization grant (core `feat/device-authorization`): `POST /oauth/device_authorization`,
+      `grant_type=urn:ietf:params:oauth:grant-type:device_code` at the token endpoint, `/oauth/device`
+      verification page, `AuthService.LookupDeviceAuthorization` / `DecideDeviceAuthorization` under the
+      `devices:read` / `devices:write` family, `device_authorization_endpoint` in the AS metadata
 - [ ] Each group: CHANGELOG entry, `buf breaking` green, docs page for the scope table, release tag the client README can pin
