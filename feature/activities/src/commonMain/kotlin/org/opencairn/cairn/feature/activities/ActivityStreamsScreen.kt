@@ -1,5 +1,6 @@
 package org.opencairn.cairn.feature.activities
 
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -36,9 +37,18 @@ fun ActivityStreamsScreen(
         }
 
         else -> {
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-                StreamCharts(stream, units, state.selectedIndex, viewModel::select, height = 180.dp)
+            // The channels share the screen height; scrolling only kicks in below the minimum chart height.
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                val labels = LABEL_HEIGHT * stream.channels.size
+                val height = ((maxHeight - PADDING * 2 - labels) / stream.channels.size).coerceAtLeast(MIN_CHART)
+                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(PADDING)) {
+                    StreamCharts(stream, units, state.selectedIndex, viewModel::select, height = height)
+                }
             }
         }
     }
 }
+
+private val PADDING = 16.dp
+private val MIN_CHART = 160.dp
+private val LABEL_HEIGHT = 24.dp

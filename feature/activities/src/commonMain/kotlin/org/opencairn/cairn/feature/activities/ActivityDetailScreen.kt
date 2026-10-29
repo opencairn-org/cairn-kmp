@@ -37,7 +37,7 @@ import org.opencairn.cairn.core.domain.model.BestEffortWindowKind
 import org.opencairn.cairn.core.domain.model.Meters
 import org.opencairn.cairn.core.domain.model.MetersPerSecond
 import org.opencairn.cairn.core.domain.model.Units
-import org.opencairn.cairn.ui.charts.StreamCharts
+import org.opencairn.cairn.ui.charts.CombinedStreamChart
 import org.opencairn.cairn.ui.design.components.LoadingBox
 import org.opencairn.cairn.ui.design.components.SportIcon
 import org.opencairn.cairn.ui.design.components.StaleBanner
@@ -76,6 +76,7 @@ import org.opencairn.cairn.ui.design.resources.detail_max_speed
 import org.opencairn.cairn.ui.design.resources.detail_moving_time
 import org.opencairn.cairn.ui.design.resources.detail_normalized_power
 import org.opencairn.cairn.ui.design.resources.detail_photos
+import org.opencairn.cairn.ui.design.resources.detail_see_all
 import org.opencairn.cairn.ui.design.resources.detail_sources
 import org.opencairn.cairn.ui.design.resources.detail_streams
 import org.opencairn.cairn.ui.design.resources.detail_temperature
@@ -129,14 +130,8 @@ fun ActivityDetailScreen(
             }
             if (stream != null && stream.channels.isNotEmpty()) {
                 item {
-                    SectionWithAction(Res.string.detail_streams, Res.string.detail_full_screen, onOpenStreams)
-                    StreamCharts(
-                        stream,
-                        units,
-                        state.selectedIndex,
-                        viewModel::select,
-                        channels = stream.channels.take(4),
-                    )
+                    SectionWithAction(Res.string.detail_streams, Res.string.detail_see_all, onOpenStreams)
+                    CombinedStreamChart(stream, units, state.selectedIndex, viewModel::select)
                 }
             }
             item { SecondaryStats(activity, formatters) }

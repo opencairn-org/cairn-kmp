@@ -88,6 +88,7 @@
     <string name="detail_map">Karte</string>
     <string name="detail_streams">Datenströme</string>
     <string name="detail_full_screen">Vollbild</string>
+    <string name="detail_see_all">Alle anzeigen</string>
     <string name="detail_no_track">Diese Aktivität hat keine GPS-Spur.</string>
     <string name="detail_no_streams">Diese Aktivität hat keine aufgezeichneten Datenströme.</string>
 </resources>

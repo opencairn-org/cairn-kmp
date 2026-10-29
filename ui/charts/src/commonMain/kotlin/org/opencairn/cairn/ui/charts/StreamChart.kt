@@ -27,8 +27,6 @@ import com.patrykandpatrick.vico.compose.cartesian.data.lineModel
 import com.patrykandpatrick.vico.compose.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
-import com.patrykandpatrick.vico.compose.cartesian.marker.CartesianMarker
-import com.patrykandpatrick.vico.compose.cartesian.marker.CartesianMarkerVisibilityListener
 import com.patrykandpatrick.vico.compose.cartesian.marker.rememberDefaultCartesianMarker
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
@@ -103,27 +101,7 @@ fun StreamChart(
         }
     val color = channel.color()
     val currentOnSelect by rememberUpdatedState(onSelect)
-    val listener =
-        remember(stream) {
-            object : CartesianMarkerVisibilityListener {
-                override fun onShown(
-                    marker: CartesianMarker,
-                    targets: List<CartesianMarker.Target>,
-                ) = report(targets)
-
-                override fun onUpdated(
-                    marker: CartesianMarker,
-                    targets: List<CartesianMarker.Target>,
-                ) = report(targets)
-
-                // The cursor stays where the finger lifted so the map marker and the readout remain visible.
-                override fun onHidden(marker: CartesianMarker) = Unit
-
-                private fun report(targets: List<CartesianMarker.Target>) {
-                    targets.firstOrNull()?.let { currentOnSelect(stream.indexAt(it.x)) }
-                }
-            }
-        }
+    val listener = remember(stream) { cursorListener(stream) { currentOnSelect(it) } }
     val marker = rememberDefaultCartesianMarker(label = rememberTextComponent())
     val line =
         LineCartesianLayer.rememberLine(

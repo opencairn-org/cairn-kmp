@@ -27,6 +27,7 @@ kotlin {
 
 dependencies {
     api(projects.app.shared)
+    implementation(projects.ui.design)
     implementation(projects.core.auth)
     implementation(projects.core.database)
     implementation(libs.oidc.appsupport)

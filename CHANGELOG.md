@@ -27,6 +27,11 @@ Before 1.0.0 a minor bump may contain breaking changes.
 - Interactive MapLibre route map on the activity detail page (track with casing, start and finish
   markers, cursor marker) and a full-screen map view; stream charts (Vico) per channel with a
   shared cursor that moves the map marker, and a full-screen streams view.
+- Activity detail shows every stream channel in one normalised chart with a legend readout at
+  the cursor; "See all" opens the stacked per-channel view sized to the screen. The detail
+  page, the full-screen map and the streams view share one view model, so the cursor carries over.
+- Cairn launcher icon (adaptive with monochrome variant and legacy densities) and the desktop
+  window and package icon.
 - `make e2e`: end-to-end run of the app graph against a live cairn-core; debug builds allow
   cleartext HTTP to localhost for emulator testing.
 - App shell: bottom navigation (Overview, Activities, Settings) on Navigation 3, settings with

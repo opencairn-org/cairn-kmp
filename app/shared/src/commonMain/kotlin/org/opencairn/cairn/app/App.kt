@@ -20,6 +20,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
@@ -153,6 +154,14 @@ private fun AppNavDisplay(
     modifier: Modifier,
 ) {
     val scope = rememberCoroutineScope()
+    // Detail, map and streams of one activity share a view model (and thus the cursor): it lives in
+    // the shell's store, not in the per-entry stores the decorators create.
+    val sharedOwner = checkNotNull(LocalViewModelStoreOwner.current) { "no ViewModelStoreOwner" }
+    val detailViewModel: @Composable (String) -> ActivityDetailViewModel = { id ->
+        viewModel(viewModelStoreOwner = sharedOwner, key = "activity:$id") {
+            ActivityDetailViewModel(graph.activityRepository, id)
+        }
+    }
     NavDisplay(
         backStack = backStack,
         modifier = modifier,
@@ -182,7 +191,7 @@ private fun AppNavDisplay(
 
                 is Route.ActivityDetail -> {
                     NavEntry(key) {
-                        val vm = viewModel(key = key.id) { ActivityDetailViewModel(graph.activityRepository, key.id) }
+                        val vm = detailViewModel(key.id)
                         ActivityDetailScreen(
                             vm,
                             formatters,
@@ -196,14 +205,14 @@ private fun AppNavDisplay(
 
                 is Route.ActivityMap -> {
                     NavEntry(key) {
-                        val vm = viewModel(key = key.id) { ActivityDetailViewModel(graph.activityRepository, key.id) }
+                        val vm = detailViewModel(key.id)
                         ActivityMapScreen(vm)
                     }
                 }
 
                 is Route.ActivityStreams -> {
                     NavEntry(key) {
-                        val vm = viewModel(key = key.id) { ActivityDetailViewModel(graph.activityRepository, key.id) }
+                        val vm = detailViewModel(key.id)
                         ActivityStreamsScreen(vm, prefs.units)
                     }
                 }
