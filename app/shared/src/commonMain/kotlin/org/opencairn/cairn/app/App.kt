@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -22,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -44,10 +44,33 @@ import org.jetbrains.compose.resources.stringResource
 import org.opencairn.cairn.app.di.AppGraph
 import org.opencairn.cairn.app.navigation.Route
 import org.opencairn.cairn.app.navigation.topLevelRoutes
-import org.opencairn.cairn.app.settings.SettingsScreen
 import org.opencairn.cairn.core.domain.model.AccountKey
+import org.opencairn.cairn.core.domain.model.ActivityType
+import org.opencairn.cairn.core.domain.model.BestEffortMetric
+import org.opencairn.cairn.core.domain.model.BestEffortWindowKind
+import org.opencairn.cairn.core.domain.model.GearDraft
 import org.opencairn.cairn.core.domain.model.Preferences
+import org.opencairn.cairn.core.domain.model.RecordKey
 import org.opencairn.cairn.core.domain.model.User
+import org.opencairn.cairn.feature.account.AboutScreen
+import org.opencairn.cairn.feature.account.AccountActions
+import org.opencairn.cairn.feature.account.AccountScreen
+import org.opencairn.cairn.feature.account.AccountViewModel
+import org.opencairn.cairn.feature.account.AthleteProfileScreen
+import org.opencairn.cairn.feature.account.AthleteViewModel
+import org.opencairn.cairn.feature.account.Avatar
+import org.opencairn.cairn.feature.account.GearDetailScreen
+import org.opencairn.cairn.feature.account.GearEditScreen
+import org.opencairn.cairn.feature.account.GearEditViewModel
+import org.opencairn.cairn.feature.account.GearScreen
+import org.opencairn.cairn.feature.account.GearViewModel
+import org.opencairn.cairn.feature.account.MetricHistoryScreen
+import org.opencairn.cairn.feature.account.RecordHistoryScreen
+import org.opencairn.cairn.feature.account.RecordHistoryViewModel
+import org.opencairn.cairn.feature.account.RecordsScreen
+import org.opencairn.cairn.feature.account.RecordsViewModel
+import org.opencairn.cairn.feature.account.SettingsScreen
+import org.opencairn.cairn.feature.account.SettingsViewModel
 import org.opencairn.cairn.feature.activities.ActivitiesScreen
 import org.opencairn.cairn.feature.activities.ActivitiesViewModel
 import org.opencairn.cairn.feature.activities.ActivityDetailScreen
@@ -63,9 +86,9 @@ import org.opencairn.cairn.feature.overview.OverviewViewModel
 import org.opencairn.cairn.ui.design.format.DateFormatters
 import org.opencairn.cairn.ui.design.format.Formatters
 import org.opencairn.cairn.ui.design.resources.Res
+import org.opencairn.cairn.ui.design.resources.nav_account
 import org.opencairn.cairn.ui.design.resources.nav_activities
 import org.opencairn.cairn.ui.design.resources.nav_overview
-import org.opencairn.cairn.ui.design.resources.nav_settings
 import org.opencairn.cairn.ui.design.theme.CairnTheme
 
 val LocalAppGraph = staticCompositionLocalOf<AppGraph> { error("AppGraph not provided") }
@@ -78,7 +101,16 @@ private val navSavedStateConfiguration =
                 polymorphic(NavKey::class) {
                     subclass(Route.Overview::class)
                     subclass(Route.Activities::class)
+                    subclass(Route.Account::class)
+                    subclass(Route.AthleteProfile::class)
+                    subclass(Route.MetricHistory::class)
+                    subclass(Route.Gear::class)
+                    subclass(Route.GearDetail::class)
+                    subclass(Route.GearEdit::class)
+                    subclass(Route.Records::class)
+                    subclass(Route.RecordHistory::class)
                     subclass(Route.Settings::class)
+                    subclass(Route.About::class)
                     subclass(Route.ApproveDevice::class)
                     subclass(Route.ActivityDetail::class)
                     subclass(Route.ActivityMap::class)
@@ -138,7 +170,13 @@ private fun AppShell(
                                     backStack.add(route)
                                 }
                             },
-                            icon = { Icon(route.icon(), contentDescription = null) },
+                            icon = {
+                                if (route == Route.Account) {
+                                    Avatar(user?.avatarUrl, 24.dp)
+                                } else {
+                                    Icon(route.icon(), contentDescription = null)
+                                }
+                            },
                             label = { Text(route.label()) },
                         )
                     }
@@ -170,6 +208,19 @@ private fun AppNavDisplay(
         viewModel(viewModelStoreOwner = sharedOwner, key = "activity:$id") {
             ActivityDetailViewModel(graph.activityRepository, id)
         }
+    }
+    val gearViewModel: @Composable () -> GearViewModel = {
+        viewModel(viewModelStoreOwner = sharedOwner, key = "gear") { GearViewModel(graph.gearRepository) }
+    }
+    val athleteViewModel: @Composable () -> AthleteViewModel = {
+        viewModel(viewModelStoreOwner = sharedOwner, key = "athlete") { AthleteViewModel(graph.athleteRepository) }
+    }
+    val settingsViewModel: @Composable () -> SettingsViewModel = {
+        viewModel(viewModelStoreOwner = sharedOwner, key = "settings") { SettingsViewModel(graph.sessionRepository) }
+    }
+    val back = {
+        backStack.removeLastOrNull()
+        Unit
     }
     NavDisplay(
         backStack = backStack,
@@ -227,17 +278,130 @@ private fun AppNavDisplay(
                     }
                 }
 
+                is Route.Account -> {
+                    NavEntry(key) {
+                        val vm =
+                            viewModel {
+                                AccountViewModel(graph.athleteRepository, graph.gearRepository, graph.recordsRepository)
+                            }
+                        AccountScreen(
+                            vm,
+                            user,
+                            dates,
+                            AccountActions(
+                                onAthlete = { backStack.add(Route.AthleteProfile) },
+                                onGear = { backStack.add(Route.Gear) },
+                                onRecords = { backStack.add(Route.Records) },
+                                onSettings = { backStack.add(Route.Settings) },
+                                onAbout = { backStack.add(Route.About) },
+                                onSignOut = { scope.launch { graph.sessionRepository.signOut() } },
+                            ),
+                        )
+                    }
+                }
+
+                is Route.AthleteProfile -> {
+                    NavEntry(key) {
+                        AthleteProfileScreen(
+                            athleteViewModel(),
+                            dates,
+                            onBack = back,
+                        ) { backStack.add(Route.MetricHistory(it)) }
+                    }
+                }
+
+                is Route.MetricHistory -> {
+                    NavEntry(key) { MetricHistoryScreen(athleteViewModel(), key.key, dates, onBack = back) }
+                }
+
+                is Route.Gear -> {
+                    NavEntry(key) {
+                        GearScreen(
+                            gearViewModel(),
+                            formatters,
+                            onBack = back,
+                            onOpen = { backStack.add(Route.GearDetail(it)) },
+                            onAdd = { backStack.add(Route.GearEdit(null)) },
+                        )
+                    }
+                }
+
+                is Route.GearDetail -> {
+                    NavEntry(key) {
+                        GearDetailScreen(gearViewModel(), key.id, formatters, dates, onBack = back) {
+                            backStack.add(Route.GearEdit(key.id))
+                        }
+                    }
+                }
+
+                is Route.GearEdit -> {
+                    NavEntry(key) {
+                        val existing = key.id?.let { id -> gearViewModel().state.value.byId(id) }
+                        val initial =
+                            existing?.let {
+                                GearDraft(it.kind, it.name, it.brand, it.model, it.notes, it.purchaseDate)
+                            } ?: GearDraft()
+                        val vm =
+                            viewModel(
+                                key = "gear-edit:${key.id}",
+                            ) { GearEditViewModel(graph.gearRepository, key.id, initial) }
+                        GearEditScreen(vm, isNew = key.id == null, onDone = back)
+                    }
+                }
+
+                is Route.Records -> {
+                    NavEntry(key) {
+                        val vm = viewModel { RecordsViewModel(graph.recordsRepository) }
+                        RecordsScreen(vm, formatters, dates, onBack = back) { k ->
+                            backStack.add(
+                                Route.RecordHistory(
+                                    k.activityType.wire,
+                                    k.metric.name,
+                                    k.windowKind.name,
+                                    k.windowValue,
+                                ),
+                            )
+                        }
+                    }
+                }
+
+                is Route.RecordHistory -> {
+                    NavEntry(key) {
+                        val recordKey =
+                            RecordKey(
+                                ActivityType.entries.first { it.wire == key.activityType },
+                                BestEffortMetric.valueOf(key.metric),
+                                BestEffortWindowKind.valueOf(key.windowKind),
+                                key.windowValue,
+                            )
+                        val vm =
+                            viewModel(
+                                key = "record:$key",
+                            ) { RecordHistoryViewModel(graph.recordsRepository, recordKey) }
+                        RecordHistoryScreen(
+                            vm,
+                            formatters,
+                            dates,
+                            onBack = back,
+                        ) { backStack.add(Route.ActivityDetail(it)) }
+                    }
+                }
+
                 is Route.Settings -> {
                     NavEntry(key) {
                         SettingsScreen(
+                            settingsViewModel(),
                             user,
                             account,
-                            graph.platform.appVersion,
-                            onApproveDevice = { backStack.add(Route.ApproveDevice) },
-                        ) {
-                            scope.launch { graph.sessionRepository.signOut() }
-                        }
+                            onBack = back,
+                        ) { backStack.add(Route.ApproveDevice) }
                     }
+                }
+
+                is Route.About -> {
+                    NavEntry(
+                        key,
+                    ) { AboutScreen(settingsViewModel(), graph.platform.appVersion, account, onBack = back) }
                 }
 
                 is Route.ApproveDevice -> {
@@ -260,8 +424,8 @@ private fun Route.label(): String =
     when (this) {
         Route.Overview -> stringResource(Res.string.nav_overview)
         Route.Activities -> stringResource(Res.string.nav_activities)
-        Route.Settings -> stringResource(Res.string.nav_settings)
-        is Route.ActivityDetail, is Route.ActivityMap, is Route.ActivityStreams, Route.ApproveDevice -> ""
+        Route.Account -> stringResource(Res.string.nav_account)
+        else -> ""
     }
 
 private fun Route.icon() =
@@ -274,11 +438,7 @@ private fun Route.icon() =
             Icons.AutoMirrored.Filled.List
         }
 
-        Route.Settings -> {
-            Icons.Default.Settings
-        }
-
-        is Route.ActivityDetail, is Route.ActivityMap, is Route.ActivityStreams, Route.ApproveDevice -> {
+        else -> {
             Icons.AutoMirrored.Filled.List
         }
     }

@@ -146,7 +146,7 @@ class ActivityRepositoryImplTest {
         val scope = CacheScope(session)
         return Fixture(
             ActivityRepositoryImpl(db, scope, dispatchers),
-            OverviewRepositoryImpl(db, scope, dispatchers),
+            OverviewRepositoryImpl(scope, SnapshotStore(db, scope, dispatchers)),
             db,
         )
     }

@@ -8,6 +8,20 @@ Before 1.0.0 a minor bump may contain breaking changes.
 
 ## [Unreleased]
 
+### Added
+
+- Account area behind the avatar in the bottom bar, replacing the Settings tab: athlete profile
+  (latest values of FTP, threshold, max and resting heart rate and weight at a glance; every
+  parameter with its dated history, add and delete), gear (active and retired, lifetime numbers,
+  create, edit, retire, delete), personal records grouped by sport with the per-record history and
+  its progression chart, settings (account, editable format and units, server, device approval),
+  an about page and sign-out.
+
+### Changed
+
+- Format and unit preferences are edited in the app and saved on the server
+  (`AuthService.UpdateUserPreferences`).
+
 ## [0.1.0] - 2026-10-29
 
 First release: a view-only client for cairn-core 0.6.0 or later, as a signed Android APK on the

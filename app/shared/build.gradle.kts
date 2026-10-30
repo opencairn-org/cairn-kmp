@@ -23,6 +23,7 @@ kotlin {
             implementation(projects.feature.login)
             implementation(projects.feature.overview)
             implementation(projects.feature.activities)
+            implementation(projects.feature.account)
             implementation(libs.navigation3.ui)
             implementation(libs.lifecycle.viewmodel.compose)
             implementation(libs.lifecycle.viewmodel.navigation3)

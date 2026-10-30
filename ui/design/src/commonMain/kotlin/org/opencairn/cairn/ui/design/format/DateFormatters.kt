@@ -51,6 +51,18 @@ class DateFormatters(
         }
     }
 
+    /** An ISO `YYYY-MM-DD` string in the preferred date style; anything else is returned unchanged. */
+    fun isoDate(iso: String): String {
+        val parts = iso.split('-')
+        if (parts.size != 3) return iso
+        val (y, m, d) = parts
+        return when (dateStyle) {
+            DateFormat.US -> "$m/$d/$y"
+            DateFormat.EU -> "$d.$m.$y"
+            else -> iso
+        }
+    }
+
     fun time(
         instant: Instant,
         zone: TimeZone = TimeZone.currentSystemDefault(),

@@ -143,7 +143,11 @@ needs. Needs core H4.
    `MarkNotificationRead` / `MarkAllNotificationsRead` under the `notifications:write` scope
    from the handover; `StreamNotifications` for the live badge once it exists).
 2. Gear (`ListGear`, `ListGearDefaults`, pending refs count): active, defaults, retired, totals,
-   link to the filtered list.
+   link to the filtered list. DONE 2026-10-30 (list, detail, create/edit/retire/delete; defaults
+   shown from the provider refs; pending refs, merge and default editing still open).
+   Also done: the account landing page behind the avatar tab, the athlete profile with dated
+   values (`MetricsService.ListAthleteMetrics`/`UpsertAthleteMetric`/`DeleteAthleteMetric`) and
+   personal records with history (`ActivityService.ListRecords`, `StatsService.GetBestEffortHistory`).
 3. Connections and sync status (`ExternalAccountService.ListExternalAccounts`, `GetSyncStatus`,
    `ListSyncHistory`, `ListQueueItems`): account cards polled every 5 s while visible, status
    badge, queue counts, rate-limit budgets, history, queue items.
@@ -152,7 +156,8 @@ needs. Needs core H4.
    (`GetSharedActivity`, no login), review queue (`ListReviewQueue`).
 5. Settings: display name/username/email, quota (`GetQuota`), units/date/time/locale
    (`UpdateUserPreferences` under `profile:write`), server and account management, about (app
-   version, core version, licenses from the report).
+   version, core version, licenses from the report). DONE 2026-10-30 except quota, profile edits
+   and the bundled licence report (the about page links to the release page instead).
 6. Deep links: `cairn://` and https app links for activity, segment, profile, shared token.
 
 Exit criteria: feature parity checklist (one row per web page, from the survey) is complete for

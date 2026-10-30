@@ -20,6 +20,12 @@ Releases are published on the [GitHub releases page](https://github.com/opencair
 Every artifact is signed keyless with cosign and carries a provenance attestation; the release
 notes list the `cosign verify-blob` and `gh attestation verify` commands.
 
+## What the app shows
+
+Overview with totals and the home feed, the activity list with filters, activity detail with map,
+streams and best efforts, and the account area: athlete profile with dated values, gear, personal
+records, settings and about. Imports and edits beyond these stay in the web UI until after 1.0.
+
 ## Compatibility
 
 | cairn-kmp | cairn-core |

@@ -334,19 +334,8 @@ private fun BestEffortRow(
     e: BestEffort,
     f: Formatters,
 ) {
-    val window =
-        when (e.windowKind) {
-            BestEffortWindowKind.DISTANCE -> f.distance(Meters(e.windowValue.toDouble()))
-            BestEffortWindowKind.DURATION -> f.duration(kotlin.time.Duration.parse("${e.windowValue}s"))
-        }
-    val value =
-        when (e.metric) {
-            BestEffortMetric.PACE -> f.pace(MetersPerSecond(if (e.achievedValue > 0) 1000.0 / e.achievedValue else 0.0))
-            BestEffortMetric.SPEED -> f.speed(MetersPerSecond(e.achievedValue))
-            BestEffortMetric.POWER -> "${e.achievedValue.toInt()} W"
-            BestEffortMetric.HEART_RATE -> "${e.achievedValue.toInt()} bpm"
-            BestEffortMetric.VAM -> "${e.achievedValue.toInt()} m/h"
-        }
+    val window = f.effortWindow(e.windowKind, e.windowValue)
+    val value = f.effortValue(e.metric, e.achievedValue)
     Column {
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),

@@ -63,3 +63,21 @@ fun Account.toDomain(): User =
         permissions = permissions.split(',').filter { it.isNotBlank() },
         createdAt = created_at?.let { Instant.fromEpochSeconds(it) },
     )
+
+fun Units.toProto(): UnitSystem =
+    if (this == Units.IMPERIAL) UnitSystem.UNIT_SYSTEM_IMPERIAL else UnitSystem.UNIT_SYSTEM_METRIC
+
+fun DateFormat.toProto(): ProtoDateFormat =
+    when (this) {
+        DateFormat.ISO -> ProtoDateFormat.DATE_FORMAT_ISO
+        DateFormat.US -> ProtoDateFormat.DATE_FORMAT_US
+        DateFormat.EU -> ProtoDateFormat.DATE_FORMAT_EU
+        DateFormat.LOCALE -> ProtoDateFormat.DATE_FORMAT_UNSPECIFIED
+    }
+
+fun TimeFormat.toProto(): ProtoTimeFormat =
+    when (this) {
+        TimeFormat.H24 -> ProtoTimeFormat.TIME_FORMAT_24H
+        TimeFormat.H12 -> ProtoTimeFormat.TIME_FORMAT_12H
+        TimeFormat.LOCALE -> ProtoTimeFormat.TIME_FORMAT_UNSPECIFIED
+    }

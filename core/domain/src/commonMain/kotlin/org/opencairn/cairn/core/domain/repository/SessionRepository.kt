@@ -3,6 +3,7 @@ package org.opencairn.cairn.core.domain.repository
 import kotlinx.coroutines.flow.Flow
 import org.opencairn.cairn.core.domain.model.AccountKey
 import org.opencairn.cairn.core.domain.model.DeviceSignIn
+import org.opencairn.cairn.core.domain.model.Preferences
 import org.opencairn.cairn.core.domain.model.Server
 import org.opencairn.cairn.core.domain.model.User
 
@@ -31,6 +32,12 @@ interface SessionRepository {
     ): Result<User>
 
     suspend fun refreshCurrentUser(): Result<User>
+
+    /** Saves format and unit preferences on the server and in the local account. */
+    suspend fun updatePreferences(preferences: Preferences): Result<User>
+
+    /** What the app knows about the active account's server, null while signed out. */
+    suspend fun activeServer(): Server?
 
     suspend fun signOut()
 }

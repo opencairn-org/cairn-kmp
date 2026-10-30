@@ -11,15 +11,22 @@ import org.opencairn.cairn.core.auth.SessionManager
 import org.opencairn.cairn.core.common.DefaultDispatcherProvider
 import org.opencairn.cairn.core.common.DispatcherProvider
 import org.opencairn.cairn.core.data.ActivityRepositoryImpl
+import org.opencairn.cairn.core.data.AthleteRepositoryImpl
 import org.opencairn.cairn.core.data.CacheScope
 import org.opencairn.cairn.core.data.DeviceApprovalRepositoryImpl
+import org.opencairn.cairn.core.data.GearRepositoryImpl
 import org.opencairn.cairn.core.data.OverviewRepositoryImpl
+import org.opencairn.cairn.core.data.RecordsRepositoryImpl
+import org.opencairn.cairn.core.data.SnapshotStore
 import org.opencairn.cairn.core.database.CairnDb
 import org.opencairn.cairn.core.database.DatabaseDriverFactory
 import org.opencairn.cairn.core.database.appDatabase
 import org.opencairn.cairn.core.domain.repository.ActivityRepository
+import org.opencairn.cairn.core.domain.repository.AthleteRepository
 import org.opencairn.cairn.core.domain.repository.DeviceApprovalRepository
+import org.opencairn.cairn.core.domain.repository.GearRepository
 import org.opencairn.cairn.core.domain.repository.OverviewRepository
+import org.opencairn.cairn.core.domain.repository.RecordsRepository
 import org.opencairn.cairn.core.domain.repository.SessionRepository
 
 /** What each platform entry point hands to the shared graph. */
@@ -40,6 +47,9 @@ interface AppGraph {
     val activityRepository: ActivityRepository
     val overviewRepository: OverviewRepository
     val deviceApprovalRepository: DeviceApprovalRepository
+    val athleteRepository: AthleteRepository
+    val gearRepository: GearRepository
+    val recordsRepository: RecordsRepository
 
     @DependencyGraph.Factory
     fun interface Factory {
@@ -94,13 +104,41 @@ interface AppGraph {
     @Provides
     @SingleIn(AppScope::class)
     fun provideOverviewRepository(
-        db: CairnDb,
         scope: CacheScope,
-        dispatchers: DispatcherProvider,
-    ): OverviewRepository = OverviewRepositoryImpl(db, scope, dispatchers)
+        snapshots: SnapshotStore,
+    ): OverviewRepository = OverviewRepositoryImpl(scope, snapshots)
 
     @Provides
     @SingleIn(AppScope::class)
     fun provideDeviceApprovalRepository(scope: CacheScope): DeviceApprovalRepository =
         DeviceApprovalRepositoryImpl(scope)
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun provideSnapshotStore(
+        db: CairnDb,
+        scope: CacheScope,
+        dispatchers: DispatcherProvider,
+    ): SnapshotStore = SnapshotStore(db, scope, dispatchers)
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun provideAthleteRepository(
+        scope: CacheScope,
+        snapshots: SnapshotStore,
+    ): AthleteRepository = AthleteRepositoryImpl(scope, snapshots)
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun provideGearRepository(
+        scope: CacheScope,
+        snapshots: SnapshotStore,
+    ): GearRepository = GearRepositoryImpl(scope, snapshots)
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun provideRecordsRepository(
+        scope: CacheScope,
+        snapshots: SnapshotStore,
+    ): RecordsRepository = RecordsRepositoryImpl(scope, snapshots)
 }

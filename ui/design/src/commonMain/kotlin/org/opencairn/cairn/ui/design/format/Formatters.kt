@@ -1,10 +1,13 @@
 package org.opencairn.cairn.ui.design.format
 
+import org.opencairn.cairn.core.domain.model.BestEffortMetric
+import org.opencairn.cairn.core.domain.model.BestEffortWindowKind
 import org.opencairn.cairn.core.domain.model.Meters
 import org.opencairn.cairn.core.domain.model.MetersPerSecond
 import org.opencairn.cairn.core.domain.model.Units
 import kotlin.math.roundToInt
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /** Display conversion of SI values according to the user's units; mirrors web/src/lib/format.ts. */
 class Formatters(
@@ -48,6 +51,39 @@ class Formatters(
         when (units) {
             Units.METRIC -> "${celsius.roundToInt()} °C"
             Units.IMPERIAL -> "${(celsius * 9 / 5 + 32).roundToInt()} °F"
+        }
+
+    /** A best-effort value in the unit of its metric (pace is stored as seconds per kilometre). */
+    fun effortValue(
+        metric: BestEffortMetric,
+        value: Double,
+    ): String =
+        when (metric) {
+            BestEffortMetric.PACE -> pace(MetersPerSecond(if (value > 0) 1000.0 / value else 0.0))
+            BestEffortMetric.SPEED -> speed(MetersPerSecond(value))
+            BestEffortMetric.POWER -> "${value.toInt()} W"
+            BestEffortMetric.HEART_RATE -> "${value.toInt()} bpm"
+            BestEffortMetric.VAM -> "${value.toInt()} m/h"
+        }
+
+    /** A best-effort window: a distance in metres or a duration in seconds. */
+    fun effortWindow(
+        kind: BestEffortWindowKind,
+        value: Int,
+    ): String =
+        when (kind) {
+            BestEffortWindowKind.DISTANCE -> distance(Meters(value.toDouble()))
+            BestEffortWindowKind.DURATION -> duration(value.seconds)
+        }
+
+    /** Metric label as the web shows it: "Fastest", "Top speed", "Best power", "Peak HR", "Best VAM". */
+    fun effortLabel(metric: BestEffortMetric): String =
+        when (metric) {
+            BestEffortMetric.PACE -> "Fastest"
+            BestEffortMetric.SPEED -> "Top speed"
+            BestEffortMetric.POWER -> "Best power"
+            BestEffortMetric.HEART_RATE -> "Peak HR"
+            BestEffortMetric.VAM -> "Best VAM"
         }
 
     private fun fixed(

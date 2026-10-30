@@ -4,9 +4,11 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import cairn.v1.GetCurrentUserRequest
 import cairn.v1.GetInstanceInfoRequest
+import cairn.v1.UpdateUserPreferencesRequest
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -20,6 +22,7 @@ import org.opencairn.cairn.core.database.upsertAccount
 import org.opencairn.cairn.core.database.upsertServer
 import org.opencairn.cairn.core.domain.model.AccountKey
 import org.opencairn.cairn.core.domain.model.DeviceSignIn
+import org.opencairn.cairn.core.domain.model.Preferences
 import org.opencairn.cairn.core.domain.model.Server
 import org.opencairn.cairn.core.domain.model.User
 import org.opencairn.cairn.core.domain.repository.SessionRepository
@@ -211,6 +214,29 @@ class SessionManager(
             storeAccount(key.serverBaseUrl, user, currentTokens()?.kind ?: AuthKind.OAUTH, active = true)
             user
         }
+
+    override suspend fun updatePreferences(preferences: Preferences): Result<User> =
+        apiResult {
+            val key = activeKey() ?: throw AppError.Unauthenticated()
+            val request =
+                UpdateUserPreferencesRequest(
+                    date_format = preferences.dateFormat.toProto(),
+                    time_format = preferences.timeFormat.toProto(),
+                    units = preferences.units.toProto(),
+                )
+            val response = api().auth.UpdateUserPreferences().execute(request)
+            // The response carries no permissions; keep the ones the account already has.
+            val permissions = currentUser.first()?.permissions.orEmpty()
+            val user = requireNotNull(response.user) { "server returned no user" }.toDomain(permissions)
+            storeAccount(key.serverBaseUrl, user, currentTokens()?.kind ?: AuthKind.OAUTH, active = true)
+            user
+        }
+
+    override suspend fun activeServer(): Server? {
+        val key = activeKey() ?: return null
+        val row = withContext(dispatchers.io) { db.serversQueries.byUrl(key.serverBaseUrl).executeAsOneOrNull() }
+        return row?.let { Server(it.base_url, it.version, it.federation_enabled != 0L, it.oauth_enabled != 0L) }
+    }
 
     override suspend fun signOut() {
         val key = activeKey() ?: return

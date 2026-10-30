@@ -12,6 +12,7 @@ import kotlinx.coroutines.test.setMain
 import org.opencairn.cairn.core.common.AppError
 import org.opencairn.cairn.core.domain.model.AccountKey
 import org.opencairn.cairn.core.domain.model.DeviceSignIn
+import org.opencairn.cairn.core.domain.model.Preferences
 import org.opencairn.cairn.core.domain.model.Server
 import org.opencairn.cairn.core.domain.model.User
 import org.opencairn.cairn.core.domain.repository.SessionRepository
@@ -63,6 +64,11 @@ class LoginViewModelTest {
             waiting.await()
             return deviceOutcome
         }
+
+        override suspend fun updatePreferences(preferences: Preferences): Result<User> =
+            Result.failure(AppError.Unauthenticated())
+
+        override suspend fun activeServer(): Server? = null
 
         override suspend fun refreshCurrentUser(): Result<User> = Result.failure(AppError.Unauthenticated())
 
