@@ -9,7 +9,7 @@ COVER_MIN ?= 40
 # renovate: datasource=github-releases depName=google/osv-scanner
 OSV_SCANNER_VERSION ?= v2.7.0
 # renovate: datasource=github-releases depName=fleetlint/fleetlint
-FLEETLINT_VERSION ?= v0.9.0
+FLEETLINT_VERSION ?= v0.10.0
 PROTO_REF := $(shell cat PROTO_VERSION 2>/dev/null)
 
 .PHONY: help
