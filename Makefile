@@ -20,7 +20,7 @@ help: ## list targets
 # renovate: datasource=pypi depName=prek
 PREK_VERSION ?= 0.5.10
 # renovate: datasource=npm depName=jscpd
-JSCPD_VERSION ?= 5.4.2
+JSCPD_VERSION ?= 5.4.3
 
 tools: ## install the pinned gate tools that are not Gradle plugins (osv-scanner, fleetlint, prek, jscpd)
 	go install github.com/google/osv-scanner/v2/cmd/osv-scanner@$(OSV_SCANNER_VERSION)
