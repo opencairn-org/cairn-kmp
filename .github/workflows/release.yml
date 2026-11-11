@@ -109,7 +109,7 @@ jobs:
           CAIRN_VERSION: ${{ github.ref_name }}
         run: ./gradlew --console=plain :app:desktop:jar
       - name: Build desktop packages with Conveyor (Linux, Windows, macOS from one runner)
-        uses: hydraulic-software/conveyor/actions/build@7370ce828ff1cbc38b95426ffb2fd613492016d5 # v22.3
+        uses: hydraulic-software/conveyor/actions/build@a32fda12dc09bd5d6934534270cb4b2a1291e970 # v22.4
         env:
           CAIRN_VERSION: ${{ github.ref_name }}   # printConveyorConfig derives app.version from it
         with:
