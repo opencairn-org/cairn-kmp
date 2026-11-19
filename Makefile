@@ -18,7 +18,7 @@ help: ## list targets
 
 .PHONY: tools
 # renovate: datasource=pypi depName=prek
-PREK_VERSION ?= 0.5.10
+PREK_VERSION ?= 0.5.11
 # renovate: datasource=npm depName=jscpd
 JSCPD_VERSION ?= 5.4.3
 
