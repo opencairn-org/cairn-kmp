@@ -8,3 +8,8 @@ contributors.
 This product depends on third-party libraries. Their license texts are
 listed in the generated license report (`make licenses`) and bundled
 with every release under third-party-licenses/.
+
+The screenshot tests render text with Open Sans (Ascender Corporation /
+Google, Apache License 2.0), kept under
+app/shared/src/desktopTest/resources/fonts. It is a test fixture and is not
+part of any release artifact.

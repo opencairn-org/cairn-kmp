@@ -41,6 +41,10 @@ lint: ## format check + detekt + dependency health, warnings as errors
 test: ## unit tests on the JVM targets (common code runs there)
 	$(GRADLE) $(GRADLE_FLAGS) allTests
 
+.PHONY: screenshots
+screenshots: ## re-record the reference images of the screenshot tests; review the changed PNGs like code
+	$(GRADLE) $(GRADLE_FLAGS) :app:shared:desktopTest -Pcairn.screenshots=record
+
 .PHONY: cover
 cover: ## coverage gate: Kover total line coverage >= COVER_MIN
 	$(GRADLE) $(GRADLE_FLAGS) koverVerify koverXmlReport -Pcairn.coverMin=$(COVER_MIN)

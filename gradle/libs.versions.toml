@@ -100,6 +100,7 @@ vico = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "vico" }
 qrose = { module = "io.github.alexzhirkevich:qrose", version.ref = "qrose" }
 # test
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+compose-ui-test = { module = "org.jetbrains.compose.ui:ui-test", version.ref = "compose" }
 # build-logic classpath
 plugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 plugin-kotlin-compose = { module = "org.jetbrains.kotlin:compose-compiler-gradle-plugin", version.ref = "kotlin" }
