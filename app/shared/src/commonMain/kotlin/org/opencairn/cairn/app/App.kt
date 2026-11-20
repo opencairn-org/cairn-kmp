@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -78,6 +79,12 @@ import org.opencairn.cairn.feature.activities.ActivityDetailScreen
 import org.opencairn.cairn.feature.activities.ActivityDetailViewModel
 import org.opencairn.cairn.feature.activities.ActivityMapScreen
 import org.opencairn.cairn.feature.activities.ActivityStreamsScreen
+import org.opencairn.cairn.feature.analysis.AnalysisScreen
+import org.opencairn.cairn.feature.analysis.AnalysisViewModel
+import org.opencairn.cairn.feature.analysis.HeatmapScreen
+import org.opencairn.cairn.feature.analysis.HeatmapViewModel
+import org.opencairn.cairn.feature.analysis.StatsScreen
+import org.opencairn.cairn.feature.analysis.StatsViewModel
 import org.opencairn.cairn.feature.login.ApproveDeviceScreen
 import org.opencairn.cairn.feature.login.ApproveDeviceViewModel
 import org.opencairn.cairn.feature.login.LoginScreen
@@ -89,6 +96,7 @@ import org.opencairn.cairn.ui.design.format.Formatters
 import org.opencairn.cairn.ui.design.resources.Res
 import org.opencairn.cairn.ui.design.resources.nav_account
 import org.opencairn.cairn.ui.design.resources.nav_activities
+import org.opencairn.cairn.ui.design.resources.nav_analysis
 import org.opencairn.cairn.ui.design.resources.nav_overview
 import org.opencairn.cairn.ui.design.theme.CairnTheme
 
@@ -102,6 +110,9 @@ private val navSavedStateConfiguration =
                 polymorphic(NavKey::class) {
                     subclass(Route.Overview::class)
                     subclass(Route.Activities::class)
+                    subclass(Route.Analysis::class)
+                    subclass(Route.Stats::class)
+                    subclass(Route.Heatmap::class)
                     subclass(Route.Account::class)
                     subclass(Route.AthleteProfile::class)
                     subclass(Route.MetricHistory::class)
@@ -287,6 +298,32 @@ private fun AppNavDisplay(
                     }
                 }
 
+                is Route.Analysis -> {
+                    NavEntry(key) {
+                        val vm = viewModel { AnalysisViewModel(graph.analyticsRepository) }
+                        AnalysisScreen(
+                            vm,
+                            dates,
+                            onOpenStats = { backStack.add(Route.Stats) },
+                            onOpenHeatmap = { backStack.add(Route.Heatmap) },
+                        )
+                    }
+                }
+
+                is Route.Stats -> {
+                    NavEntry(key) {
+                        val vm = viewModel { StatsViewModel(graph.analyticsRepository) }
+                        StatsScreen(vm, formatters, dates, onBack = back) { backStack.add(Route.ActivityDetail(it)) }
+                    }
+                }
+
+                is Route.Heatmap -> {
+                    NavEntry(key) {
+                        val vm = viewModel { HeatmapViewModel(graph.analyticsRepository) }
+                        HeatmapScreen(vm, onBack = back)
+                    }
+                }
+
                 is Route.Account -> {
                     NavEntry(key) {
                         val vm =
@@ -433,6 +470,7 @@ private fun Route.label(): String =
     when (this) {
         Route.Overview -> stringResource(Res.string.nav_overview)
         Route.Activities -> stringResource(Res.string.nav_activities)
+        Route.Analysis -> stringResource(Res.string.nav_analysis)
         Route.Account -> stringResource(Res.string.nav_account)
         else -> ""
     }
@@ -445,6 +483,10 @@ private fun Route.icon() =
 
         Route.Activities -> {
             Icons.AutoMirrored.Filled.List
+        }
+
+        Route.Analysis -> {
+            Icons.Default.Insights
         }
 
         else -> {

@@ -46,6 +46,7 @@ include(
     ":feature:login",
     ":feature:overview",
     ":feature:activities",
+    ":feature:analysis",
     ":feature:account",
     ":app:shared",
     ":app:android",
