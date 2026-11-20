@@ -40,6 +40,7 @@ import org.opencairn.cairn.ui.design.components.SportIcon
 import org.opencairn.cairn.ui.design.components.StaleBanner
 import org.opencairn.cairn.ui.design.components.StatTile
 import org.opencairn.cairn.ui.design.components.SubPage
+import org.opencairn.cairn.ui.design.components.TotalsGrid
 import org.opencairn.cairn.ui.design.components.label
 import org.opencairn.cairn.ui.design.format.DateFormatters
 import org.opencairn.cairn.ui.design.format.Formatters
@@ -116,23 +117,6 @@ private fun StatsContent(
 @Composable
 private fun Title(title: StringResource) {
     Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
-}
-
-@Composable
-private fun TotalsGrid(
-    t: Totals,
-    f: Formatters,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            StatTile(stringResource(Res.string.overview_total_activities), t.count.toString(), Modifier.weight(1f))
-            StatTile(stringResource(Res.string.overview_distance), f.distance(t.distance), Modifier.weight(1f))
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            StatTile(stringResource(Res.string.overview_moving_time), f.duration(t.moving), Modifier.weight(1f))
-            StatTile(stringResource(Res.string.overview_elevation), f.elevation(t.elevationGain), Modifier.weight(1f))
-        }
-    }
 }
 
 /** A year with its distance as a bar relative to the farthest year. */
