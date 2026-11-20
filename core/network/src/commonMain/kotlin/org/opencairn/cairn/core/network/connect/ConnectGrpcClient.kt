@@ -10,11 +10,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsBytes
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.utils.io.CancellationException
@@ -23,15 +20,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import okio.IOException
 import okio.Timeout
 import kotlin.concurrent.Volatile
-import kotlin.io.encoding.Base64
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -50,11 +41,10 @@ object NoAuthenticator : RequestAuthenticator {
 }
 
 /**
- * Wire [GrpcClient] speaking the Connect protocol (unary) over Ktor:
+ * Wire [GrpcClient] speaking the Connect protocol over Ktor:
  * `POST <baseUrl>/<package>.<Service>/<Method>` with `application/proto` bodies,
  * `Connect-Protocol-Version: 1`, JSON error bodies mapped to [ConnectException].
- *
- * Server streams arrive with handover group H4; [newServerStreamingCall] throws until then.
+ * Server streams use the enveloped `application/connect+proto` form ([ConnectServerStreamingCall]).
  */
 class ConnectGrpcClient(
     private val httpClient: HttpClient,
@@ -74,7 +64,7 @@ class ConnectGrpcClient(
         throw UnsupportedOperationException("client streams are not part of the Connect client")
 
     override fun <S : Any, R : Any> newServerStreamingCall(method: GrpcMethod<S, R>): GrpcServerStreamingCall<S, R> =
-        throw UnsupportedOperationException("server streams arrive with handover H4")
+        ConnectServerStreamingCall(httpClient, baseUrl, authenticator, method)
 
     /** One unary RPC. Wire's generated clients call [execute] from `suspend` code. */
     private inner class ConnectUnaryCall<S : Any, R : Any>(
@@ -153,42 +143,16 @@ class ConnectGrpcClient(
             if (response.status == HttpStatusCode.OK) {
                 return method.responseAdapter.decode(response.bodyAsBytes())
             }
-            val error = parseError(response)
+            val error = response.toConnectException(method.path)
             val retry = error.code == ConnectCode.UNAUTHENTICATED && retryOnUnauthenticated
             if (retry && authenticator.onUnauthenticated()) {
                 return unary(request, retryOnUnauthenticated = false)
             }
             throw error
         }
-
-        private suspend fun parseError(response: HttpResponse): ConnectException {
-            val fallback = ConnectCode.fromHttpStatus(response.status.value)
-            val text = runCatching { response.bodyAsText() }.getOrDefault("")
-            val isJson = response.headers[HttpHeaders.ContentType]?.startsWith("application/json") == true
-            if (!isJson || text.isBlank()) {
-                return ConnectException(fallback, "HTTP ${response.status.value}", method.path)
-            }
-            return runCatching {
-                val obj = json.parseToJsonElement(text).jsonObject
-                val code = obj["code"]?.jsonPrimitive?.content?.let(ConnectCode::fromWire) ?: fallback
-                val message = obj["message"]?.jsonPrimitive?.content ?: ""
-                ConnectException(code, message, method.path, details = parseDetails(obj))
-            }.getOrElse { ConnectException(fallback, "HTTP ${response.status.value}", method.path) }
-        }
-
-        private fun parseDetails(obj: JsonObject): List<ConnectErrorDetail> =
-            obj["details"]?.jsonArray?.mapNotNull { d ->
-                val o = d.jsonObject
-                val type = o["type"]?.jsonPrimitive?.content ?: return@mapNotNull null
-                val value = o["value"]?.jsonPrimitive?.content ?: ""
-                val bytes = runCatching { Base64.Default.decode(value) }.getOrDefault(ByteArray(0))
-                ConnectErrorDetail(type, bytes)
-            } ?: emptyList()
     }
 
     private companion object {
-        val json = Json { ignoreUnknownKeys = true }
-
         /** Transport failures become `unavailable`, anything else `unknown`; Connect errors pass through. */
         fun Exception.asConnectException(path: String): ConnectException =
             when (this) {
