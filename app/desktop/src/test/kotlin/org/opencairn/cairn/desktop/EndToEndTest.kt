@@ -2,7 +2,9 @@ package org.opencairn.cairn.desktop
 
 import app.cash.turbine.test
 import dev.zacsweers.metro.createGraphFactory
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeoutOrNull
 import org.opencairn.cairn.app.di.AppGraph
 import org.opencairn.cairn.app.di.PlatformContext
 import org.opencairn.cairn.core.auth.AuthFlow
@@ -14,6 +16,8 @@ import org.opencairn.cairn.core.domain.model.Activity
 import org.opencairn.cairn.core.domain.model.ActivityFilter
 import org.opencairn.cairn.core.domain.model.ActivitySort
 import org.opencairn.cairn.core.domain.model.ActivityType
+import org.opencairn.cairn.core.domain.model.ExportFormat
+import org.opencairn.cairn.core.domain.model.TrainingLoadRange
 import java.io.File
 import java.nio.file.Files
 import kotlin.test.Test
@@ -58,6 +62,10 @@ class EndToEndTest {
             checkOverview(g)
             val rides = checkRideSearch(g)
             checkDetail(g, rides.first().id)
+            checkInsights(g, rides.first().id)
+            checkAnalytics(g)
+            checkSyncAndNotifications(g)
+            checkLiveStream(g)
             // Same graph, new subscription = what a restart sees: the cache answers before any network call.
             g.activityRepository.observeSearch(rideFilter, ActivitySort.DISTANCE_DESC).test {
                 assertEquals(rides.map { it.id }, assertNotNull(awaitItem()).activities.map { it.id })
@@ -135,5 +143,68 @@ class EndToEndTest {
             assertEquals(id, a.id)
             cancelAndIgnoreRemainingEvents()
         }
+    }
+
+    /** Every part is optional on the server's side; what matters is that the calls decode and none fails hard. */
+    private suspend fun checkInsights(
+        g: AppGraph,
+        id: String,
+    ) {
+        g.insightsRepository.refreshInsights(id).getOrThrow()
+        g.insightsRepository.observeInsights(id).test {
+            val i = awaitItem()
+            println(
+                "insights: laps=${i.laps.size} zones=${i.zones != null} segments=${i.segmentEfforts.size} " +
+                    "similar=${i.similar?.activities?.size ?: 0} kudos=${i.kudos?.count} comments=${i.comments.size}",
+            )
+            cancelAndIgnoreRemainingEvents()
+        }
+        val file = g.insightsRepository.export(id, ExportFormat.GPX).getOrThrow()
+        println("export: ${file.filename} (${file.contentType})")
+        assertTrue(file.url.startsWith("http"))
+    }
+
+    private suspend fun checkAnalytics(g: AppGraph) {
+        g.analyticsRepository.refreshTrainingLoad(TrainingLoadRange.SIX_MONTHS).getOrThrow()
+        g.analyticsRepository.observeTrainingLoad(TrainingLoadRange.SIX_MONTHS).test {
+            val load = assertNotNull(awaitItem().value)
+            println("training load: ${load.days.size} days, fitness=${load.fitness} form=${load.form}")
+            cancelAndIgnoreRemainingEvents()
+        }
+        g.analyticsRepository.refreshStats().getOrThrow()
+        g.analyticsRepository.observeStats().test {
+            val stats = assertNotNull(awaitItem().value)
+            println("stats: ${stats.totals.count} activities over ${stats.byYear.size} years, sports=${stats.bySport}")
+            assertTrue(stats.totals.count >= 7)
+            cancelAndIgnoreRemainingEvents()
+        }
+        val heatmap = g.analyticsRepository.heatmap(ActivityFilter()).getOrThrow()
+        println(
+            "heatmap: ${heatmap.withTrack} of ${heatmap.matched} with a track, ${heatmap.tracks.sumOf {
+                it.points.size
+            }} points",
+        )
+        assertEquals(heatmap.withTrack, heatmap.tracks.size)
+    }
+
+    private suspend fun checkSyncAndNotifications(g: AppGraph) {
+        g.syncRepository.refreshAccounts().getOrThrow()
+        g.syncRepository.observeAccounts().test {
+            val accounts = assertNotNull(awaitItem().value)
+            println("connections: ${accounts.map { it.displayName + " " + it.status }}")
+            cancelAndIgnoreRemainingEvents()
+        }
+        g.notificationRepository.refreshNotifications().getOrThrow()
+        g.notificationRepository.refreshUnread().getOrThrow()
+        g.notificationRepository.observeUnread().test {
+            println("notifications: ${assertNotNull(awaitItem().value).total} unread")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    /** The stream must open and stay open: no event is expected, a refusal or an early end would fail here. */
+    private suspend fun checkLiveStream(g: AppGraph) {
+        val early = withTimeoutOrNull(3.seconds) { g.liveEvents.activityChanges.first() }
+        println("live: stream held for 3 s, event=$early")
     }
 }
