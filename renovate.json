@@ -21,13 +21,6 @@
   "vulnerabilityAlerts": { "labels": ["security"] },
   "packageRules": [
     {
-      "description": "Kotlin, the Compose compiler and Metro are compiler plugins that must match; bump together and never automerge.",
-      "matchPackageNames": ["/^org\\.jetbrains\\.kotlin/", "/^dev\\.zacsweers\\.metro/", "/^org\\.jetbrains\\.compose/"],
-      "groupName": "kotlin toolchain",
-      "automerge": false,
-      "addLabels": ["needs-migration"]
-    },
-    {
       "description": "Gradle plugin and library minors/patches as one PR.",
       "matchManagers": ["gradle"],
       "matchUpdateTypes": ["minor", "patch", "digest"],
@@ -44,6 +37,18 @@
       "description": "Pre-releases are opted into per library in the catalog, never by Renovate.",
       "matchManagers": ["gradle"],
       "ignoreUnstable": true
+    },
+    {
+      "description": "Vico publishes its pre-releases as X.Y.Z-next.N, which Renovate's Gradle versioning reads as a stable version.",
+      "matchPackageNames": ["/^com\\.patrykandpatrick\\.vico/"],
+      "allowedVersions": "!/-next\\./"
+    },
+    {
+      "description": "Kotlin, the Compose compiler and Metro are compiler plugins that must match; bump together and never automerge. Last, so that the group and the automerge ban hold for their minors and patches too; kotlinx libraries are ordinary dependencies and stay out.",
+      "matchPackageNames": ["/^org\\.jetbrains\\.kotlin($|[.:])/", "/^dev\\.zacsweers\\.metro/", "/^org\\.jetbrains\\.compose/"],
+      "groupName": "kotlin toolchain",
+      "automerge": false,
+      "addLabels": ["needs-migration"]
     }
   ]
 }
