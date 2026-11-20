@@ -270,4 +270,10 @@
     <string name="notifications_unread_only">Unread only</string>
     <string name="notifications_mark_all">Mark all read</string>
     <string name="permission_scope_hint">This sign-in may not do that yet. Sign out and in again to grant the app the permission.</string>
+    <string name="update_available">Cairn %1$s is available</string>
+    <string name="update_open">Release notes</string>
+    <string name="update_dismiss">Dismiss</string>
+    <string name="settings_updates">Updates</string>
+    <string name="settings_update_check">Look for new versions</string>
+    <string name="settings_update_check_hint">Asks the project's release page on GitHub once a day. Nothing about you or your server is sent.</string>
 </resources>

@@ -30,6 +30,10 @@ class AndroidPlatformContext(
     private val app: CairnApplication,
 ) : PlatformContext {
     override val appVersion: String = BuildConfig.VERSION_NAME
+
+    // Release builds from the GitHub release page have no store to update them; debug builds carry a
+    // development version that every release would look newer than.
+    override val updateNotice: Boolean = BuildConfig.DISTRIBUTION == "github" && !BuildConfig.DEBUG
     override val databaseDriverFactory = DatabaseDriverFactory(app)
     override val authPlatform: AuthPlatform =
         object : AuthPlatform {
