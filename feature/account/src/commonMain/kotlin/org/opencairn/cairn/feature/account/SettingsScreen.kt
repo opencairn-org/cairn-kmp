@@ -2,6 +2,7 @@ package org.opencairn.cairn.feature.account
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,9 +13,11 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -40,6 +43,9 @@ import org.opencairn.cairn.ui.design.resources.settings_title
 import org.opencairn.cairn.ui.design.resources.settings_units
 import org.opencairn.cairn.ui.design.resources.settings_units_imperial
 import org.opencairn.cairn.ui.design.resources.settings_units_metric
+import org.opencairn.cairn.ui.design.resources.settings_update_check
+import org.opencairn.cairn.ui.design.resources.settings_update_check_hint
+import org.opencairn.cairn.ui.design.resources.settings_updates
 
 /** Account facts, editable format and units, the server, and device approval. */
 @Composable
@@ -47,6 +53,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     user: User?,
     account: AccountKey?,
+    updates: UpdateSetting?,
     onBack: () -> Unit,
     onApproveDevice: () -> Unit,
 ) {
@@ -81,7 +88,24 @@ fun SettingsScreen(
             state.server?.version?.let { StatRow("cairn-core", it) }
             Section(Res.string.settings_devices)
             OutlinedButton(onClick = onApproveDevice) { Text(stringResource(Res.string.approve_device_title)) }
+            updates?.let { UpdateCheck(it) }
         }
+    }
+}
+
+@Composable
+private fun UpdateCheck(setting: UpdateSetting) {
+    Section(Res.string.settings_updates)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(stringResource(Res.string.settings_update_check), style = MaterialTheme.typography.bodyLarge)
+            Text(
+                stringResource(Res.string.settings_update_check_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Switch(checked = setting.enabled, onCheckedChange = setting.onChange)
     }
 }
 

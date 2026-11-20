@@ -267,4 +267,10 @@
     <string name="notifications_unread_only">Nur ungelesene</string>
     <string name="notifications_mark_all">Alle als gelesen markieren</string>
     <string name="permission_scope_hint">Diese Anmeldung darf das noch nicht. Melde dich ab und wieder an, um der App die Berechtigung zu geben.</string>
+    <string name="update_available">Cairn %1$s ist verfügbar</string>
+    <string name="update_open">Versionshinweise</string>
+    <string name="update_dismiss">Ausblenden</string>
+    <string name="settings_updates">Updates</string>
+    <string name="settings_update_check">Nach neuen Versionen suchen</string>
+    <string name="settings_update_check_hint">Fragt einmal täglich die Release-Seite des Projekts auf GitHub ab. Über dich oder deinen Server wird dabei nichts gesendet.</string>
 </resources>

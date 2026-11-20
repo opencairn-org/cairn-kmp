@@ -19,11 +19,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -79,6 +81,7 @@ import org.opencairn.cairn.feature.account.RecordsScreen
 import org.opencairn.cairn.feature.account.RecordsViewModel
 import org.opencairn.cairn.feature.account.SettingsScreen
 import org.opencairn.cairn.feature.account.SettingsViewModel
+import org.opencairn.cairn.feature.account.UpdateSetting
 import org.opencairn.cairn.feature.activities.ActivitiesScreen
 import org.opencairn.cairn.feature.activities.ActivitiesViewModel
 import org.opencairn.cairn.feature.activities.ActivityDetailActions
@@ -250,6 +253,12 @@ private fun AppNavDisplay(
     modifier: Modifier,
 ) {
     val scope = rememberCoroutineScope()
+    val uriHandler = LocalUriHandler.current
+    val updates = graph.updateRepository
+    val update by updates.availableUpdate.collectAsStateWithLifecycle(initialValue = null)
+    val updateCheck by updates.checkEnabled.collectAsStateWithLifecycle(initialValue = true)
+    // Once per start of the shell; the repository itself asks the release page at most once a day.
+    LaunchedEffect(updates) { updates.checkIfDue() }
     val unread =
         notifications.state
             .collectAsStateWithLifecycle()
@@ -309,7 +318,10 @@ private fun AppNavDisplay(
                             OverviewActions(
                                 onOpenActivity = { backStack.add(Route.ActivityDetail(it)) },
                                 onOpenConnections = { backStack.add(Route.Connections) },
+                                onOpenUpdate = { uriHandler.openUri(it.url) },
+                                onDismissUpdate = { scope.launch { updates.dismiss(it.version) } },
                             ),
+                            update,
                         )
                     }
                 }
@@ -526,10 +538,13 @@ private fun AppNavDisplay(
 
                 is Route.Settings -> {
                     NavEntry(key) {
+                        val updateSetting =
+                            UpdateSetting(updateCheck) { on -> scope.launch { updates.setCheckEnabled(on) } }
                         SettingsScreen(
                             settingsViewModel(),
                             user,
                             account,
+                            updateSetting.takeIf { updates.supported },
                             onBack = back,
                         ) { backStack.add(Route.ApproveDevice) }
                     }

@@ -9,12 +9,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -25,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
+import org.opencairn.cairn.core.domain.model.AppRelease
 import org.opencairn.cairn.core.domain.model.FeedItem
 import org.opencairn.cairn.core.domain.model.Overview
 import org.opencairn.cairn.core.domain.model.SyncNotice
@@ -53,6 +56,9 @@ import org.opencairn.cairn.ui.design.resources.sync_notice_importing
 import org.opencairn.cairn.ui.design.resources.sync_notice_offline
 import org.opencairn.cairn.ui.design.resources.sync_notice_rate_limited
 import org.opencairn.cairn.ui.design.resources.sync_notice_sign_in
+import org.opencairn.cairn.ui.design.resources.update_available
+import org.opencairn.cairn.ui.design.resources.update_dismiss
+import org.opencairn.cairn.ui.design.resources.update_open
 import org.opencairn.cairn.ui.design.theme.CairnColors
 
 @Composable
@@ -62,6 +68,7 @@ fun OverviewScreen(
     dates: DateFormatters,
     federationEnabled: Boolean,
     actions: OverviewActions,
+    update: AppRelease? = null,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val overview = state.overview.value
@@ -78,6 +85,7 @@ fun OverviewScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { Text(stringResource(Res.string.overview_welcome), style = MaterialTheme.typography.headlineSmall) }
+            update?.let { release -> item(key = "update") { UpdateCard(release, actions) } }
             state.syncNotice?.let { notice -> item(key = "sync") { SyncNoticeCard(notice, actions.onOpenConnections) } }
             if (overview != null) {
                 item { TotalsGrid(overview.totals, formatters) }
@@ -230,6 +238,38 @@ private fun SyncNoticeCard(
             )
             Text(text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
             TextButton(onClick = onDetails) { Text(stringResource(Res.string.sync_notice_details)) }
+        }
+    }
+}
+
+/** A newer release: where to read about it, and a way to make the card go away until the next one. */
+@Composable
+private fun UpdateCard(
+    release: AppRelease,
+    actions: OverviewActions,
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 12.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(Res.string.update_available, release.version),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = { actions.onOpenUpdate(release) }) { Text(stringResource(Res.string.update_open)) }
+            IconButton(onClick = { actions.onDismissUpdate(release) }) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = stringResource(Res.string.update_dismiss),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
         }
     }
 }
