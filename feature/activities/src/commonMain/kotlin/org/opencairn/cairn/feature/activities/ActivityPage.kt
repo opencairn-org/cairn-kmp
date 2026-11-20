@@ -3,6 +3,7 @@ package org.opencairn.cairn.feature.activities
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -41,6 +42,7 @@ fun ActivityPage(
     onBack: () -> Unit,
     subtitle: StringResource? = null,
     scrollBehavior: TopAppBarScrollBehavior? = null,
+    actions: @Composable RowScope.() -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val scroll = scrollBehavior?.let { Modifier.nestedScroll(it.nestedScrollConnection) } ?: Modifier
@@ -60,6 +62,7 @@ fun ActivityPage(
                         )
                     }
                 },
+                actions = actions,
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         activity?.let { SportIcon(it.type, Modifier.size(22.dp).padding(end = 2.dp)) }

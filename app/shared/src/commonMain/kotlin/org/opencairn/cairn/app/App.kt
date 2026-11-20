@@ -73,6 +73,7 @@ import org.opencairn.cairn.feature.account.SettingsScreen
 import org.opencairn.cairn.feature.account.SettingsViewModel
 import org.opencairn.cairn.feature.activities.ActivitiesScreen
 import org.opencairn.cairn.feature.activities.ActivitiesViewModel
+import org.opencairn.cairn.feature.activities.ActivityDetailActions
 import org.opencairn.cairn.feature.activities.ActivityDetailScreen
 import org.opencairn.cairn.feature.activities.ActivityDetailViewModel
 import org.opencairn.cairn.feature.activities.ActivityMapScreen
@@ -206,7 +207,12 @@ private fun AppNavDisplay(
     val sharedOwner = checkNotNull(LocalViewModelStoreOwner.current) { "no ViewModelStoreOwner" }
     val detailViewModel: @Composable (String) -> ActivityDetailViewModel = { id ->
         viewModel(viewModelStoreOwner = sharedOwner, key = "activity:$id") {
-            ActivityDetailViewModel(graph.activityRepository, id)
+            ActivityDetailViewModel(
+                graph.activityRepository,
+                graph.insightsRepository,
+                id,
+                graph.liveEvents.activityChanges,
+            )
         }
     }
     val gearViewModel: @Composable () -> GearViewModel = {
@@ -257,9 +263,12 @@ private fun AppNavDisplay(
                             formatters,
                             dates,
                             prefs.units,
-                            onBack = { backStack.removeLastOrNull() },
-                            onOpenMap = { backStack.add(Route.ActivityMap(key.id)) },
-                            onOpenStreams = { backStack.add(Route.ActivityStreams(key.id)) },
+                            ActivityDetailActions(
+                                onBack = back,
+                                onOpenMap = { backStack.add(Route.ActivityMap(key.id)) },
+                                onOpenStreams = { backStack.add(Route.ActivityStreams(key.id)) },
+                                onOpenActivity = { backStack.add(Route.ActivityDetail(it)) },
+                            ),
                         )
                     }
                 }
