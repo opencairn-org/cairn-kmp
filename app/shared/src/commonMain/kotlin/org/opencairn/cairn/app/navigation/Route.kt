@@ -45,6 +45,15 @@ sealed interface Route : NavKey {
         val windowValue: Int,
     ) : Route
 
+    @Serializable data object Notifications : Route
+
+    /** The connected services and their sync state. */
+    @Serializable data object Connections : Route
+
+    @Serializable data class ConnectionDetail(
+        val id: String,
+    ) : Route
+
     @Serializable data object Settings : Route
 
     @Serializable data object About : Route

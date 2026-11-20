@@ -8,6 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -60,12 +62,17 @@ import org.opencairn.cairn.feature.account.AccountViewModel
 import org.opencairn.cairn.feature.account.AthleteProfileScreen
 import org.opencairn.cairn.feature.account.AthleteViewModel
 import org.opencairn.cairn.feature.account.Avatar
+import org.opencairn.cairn.feature.account.ConnectionDetailScreen
+import org.opencairn.cairn.feature.account.ConnectionsScreen
+import org.opencairn.cairn.feature.account.ConnectionsViewModel
 import org.opencairn.cairn.feature.account.GearDetailScreen
 import org.opencairn.cairn.feature.account.GearEditScreen
 import org.opencairn.cairn.feature.account.GearEditViewModel
 import org.opencairn.cairn.feature.account.GearScreen
 import org.opencairn.cairn.feature.account.GearViewModel
 import org.opencairn.cairn.feature.account.MetricHistoryScreen
+import org.opencairn.cairn.feature.account.NotificationsScreen
+import org.opencairn.cairn.feature.account.NotificationsViewModel
 import org.opencairn.cairn.feature.account.RecordHistoryScreen
 import org.opencairn.cairn.feature.account.RecordHistoryViewModel
 import org.opencairn.cairn.feature.account.RecordsScreen
@@ -89,6 +96,7 @@ import org.opencairn.cairn.feature.login.ApproveDeviceScreen
 import org.opencairn.cairn.feature.login.ApproveDeviceViewModel
 import org.opencairn.cairn.feature.login.LoginScreen
 import org.opencairn.cairn.feature.login.LoginViewModel
+import org.opencairn.cairn.feature.overview.OverviewActions
 import org.opencairn.cairn.feature.overview.OverviewScreen
 import org.opencairn.cairn.feature.overview.OverviewViewModel
 import org.opencairn.cairn.ui.design.format.DateFormatters
@@ -121,6 +129,9 @@ private val navSavedStateConfiguration =
                     subclass(Route.GearEdit::class)
                     subclass(Route.Records::class)
                     subclass(Route.RecordHistory::class)
+                    subclass(Route.Notifications::class)
+                    subclass(Route.Connections::class)
+                    subclass(Route.ConnectionDetail::class)
                     subclass(Route.Settings::class)
                     subclass(Route.About::class)
                     subclass(Route.ApproveDevice::class)
@@ -165,6 +176,13 @@ private fun AppShell(
     val backStack = rememberNavBackStack(navSavedStateConfiguration, Route.Overview)
     val user by graph.sessionRepository.currentUser.collectAsStateWithLifecycle(initialValue = null)
     val account by graph.sessionRepository.activeAccount.collectAsStateWithLifecycle(initialValue = null)
+    // One view model for the badge and the notification page: both follow the same list, and the
+    // badge keeps the notification stream open for as long as the app is on screen.
+    val notifications =
+        viewModel(key = "notifications") {
+            NotificationsViewModel(graph.notificationRepository, graph.liveEvents.notificationArrivals)
+        }
+    val unread by notifications.state.collectAsStateWithLifecycle()
     val top = backStack.lastOrNull()
     // Sub-pages own their top bar, which draws under the status bar; the shell only pads the bottom.
     val insets = if (top in topLevelRoutes) ScaffoldDefaults.contentWindowInsets else WindowInsets.navigationBars
@@ -184,7 +202,15 @@ private fun AppShell(
                             },
                             icon = {
                                 if (route == Route.Account) {
-                                    Avatar(user?.avatarUrl, 24.dp)
+                                    BadgedBox(badge = {
+                                        if (unread.unread.total >
+                                            0
+                                        ) {
+                                            Badge { Text(unread.unread.total.toString()) }
+                                        }
+                                    }) {
+                                        Avatar(user?.avatarUrl, 24.dp)
+                                    }
                                 } else {
                                     Icon(route.icon(), contentDescription = null)
                                 }
@@ -196,7 +222,17 @@ private fun AppShell(
             }
         },
     ) { padding ->
-        AppNavDisplay(graph, backStack, formatters, dates, prefs, user, account, Modifier.padding(padding))
+        AppNavDisplay(
+            graph,
+            backStack,
+            formatters,
+            dates,
+            prefs,
+            user,
+            account,
+            notifications,
+            Modifier.padding(padding),
+        )
     }
 }
 
@@ -210,9 +246,14 @@ private fun AppNavDisplay(
     prefs: Preferences,
     user: User?,
     account: AccountKey?,
+    notifications: NotificationsViewModel,
     modifier: Modifier,
 ) {
     val scope = rememberCoroutineScope()
+    val unread =
+        notifications.state
+            .collectAsStateWithLifecycle()
+            .value.unread.total
     // Detail, map and streams of one activity share a view model (and thus the cursor): it lives in
     // the shell's store, not in the per-entry stores the decorators create.
     val sharedOwner = checkNotNull(LocalViewModelStoreOwner.current) { "no ViewModelStoreOwner" }
@@ -252,16 +293,36 @@ private fun AppNavDisplay(
             when (key) {
                 is Route.Overview -> {
                     NavEntry(key) {
-                        val vm = viewModel { OverviewViewModel(graph.overviewRepository) }
-                        OverviewScreen(vm, formatters, dates, federationEnabled = false) { id ->
-                            backStack.add(Route.ActivityDetail(id))
-                        }
+                        val vm =
+                            viewModel {
+                                OverviewViewModel(
+                                    graph.overviewRepository,
+                                    graph.syncRepository,
+                                    graph.liveEvents.activityChanges,
+                                )
+                            }
+                        OverviewScreen(
+                            vm,
+                            formatters,
+                            dates,
+                            federationEnabled = false,
+                            OverviewActions(
+                                onOpenActivity = { backStack.add(Route.ActivityDetail(it)) },
+                                onOpenConnections = { backStack.add(Route.Connections) },
+                            ),
+                        )
                     }
                 }
 
                 is Route.Activities -> {
                     NavEntry(key) {
-                        val vm = viewModel { ActivitiesViewModel(graph.activityRepository) }
+                        val vm =
+                            viewModel {
+                                ActivitiesViewModel(
+                                    graph.activityRepository,
+                                    liveChanges = graph.liveEvents.activityChanges,
+                                )
+                            }
                         ActivitiesScreen(vm, formatters, dates) { id -> backStack.add(Route.ActivityDetail(id)) }
                     }
                 }
@@ -334,10 +395,13 @@ private fun AppNavDisplay(
                             vm,
                             user,
                             dates,
+                            unread,
                             AccountActions(
+                                onNotifications = { backStack.add(Route.Notifications) },
                                 onAthlete = { backStack.add(Route.AthleteProfile) },
                                 onGear = { backStack.add(Route.Gear) },
                                 onRecords = { backStack.add(Route.Records) },
+                                onConnections = { backStack.add(Route.Connections) },
                                 onSettings = { backStack.add(Route.Settings) },
                                 onAbout = { backStack.add(Route.About) },
                                 onSignOut = { scope.launch { graph.sessionRepository.signOut() } },
@@ -430,6 +494,33 @@ private fun AppNavDisplay(
                             dates,
                             onBack = back,
                         ) { backStack.add(Route.ActivityDetail(it)) }
+                    }
+                }
+
+                is Route.Notifications -> {
+                    NavEntry(key) {
+                        NotificationsScreen(notifications, dates, onBack = back) {
+                            backStack.add(Route.ActivityDetail(it))
+                        }
+                    }
+                }
+
+                is Route.Connections -> {
+                    NavEntry(key) {
+                        val vm = viewModel { ConnectionsViewModel(graph.syncRepository) }
+                        ConnectionsScreen(vm, dates, onBack = back) { backStack.add(Route.ConnectionDetail(it)) }
+                    }
+                }
+
+                is Route.ConnectionDetail -> {
+                    NavEntry(key) {
+                        val vm =
+                            viewModel(key = "connection:${key.id}") {
+                                ConnectionsViewModel(graph.syncRepository, detailOf = key.id)
+                            }
+                        ConnectionDetailScreen(vm, key.id, dates, onBack = back) {
+                            backStack.add(Route.ActivityDetail(it))
+                        }
                     }
                 }
 
