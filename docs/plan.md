@@ -86,7 +86,7 @@ Exit criteria: login works on Android, desktop and iOS simulator against a local
 the app and restarting offline shows the cached user; token refresh and revoked-token paths are
 covered by tests; coverage floor set (start at 60 on `core/*`).
 
-## Phase 2: activities, the core viewing experience (in progress; list, overview, detail, map and streams done 2026-10-29)
+## Phase 2: activities, the core viewing experience (in progress; list, overview, detail, map and streams done 2026-10-29; laps, zones, segment efforts, similar routes, kudos, comments and export done 2026-11-20)
 
 Goal: parity with `/`, `/activities`, `/activities/[id]` and its subpages. Needs core H2.
 
@@ -114,9 +114,14 @@ Goal: parity with `/`, `/activities`, `/activities/[id]` and its subpages. Needs
 7. Stream cache with a size budget and LRU eviction; a "downloaded for offline" indicator.
 
 Exit criteria: every read-only element of the web activity pages has an equivalent; screenshot
-tests for list and detail on phone and desktop widths; coverage floor raised.
+tests for list and detail on phone and desktop widths (done 2026-11-20, see CONTRIBUTING.md);
+coverage floor raised.
 
-## Phase 3: analytics and segments (1 to 2 weeks)
+Still open in Phase 2: the two-pane layout on wide screens, the chart's drag zoom, the merged
+stream with its provenance strip (`GetMergedStream`), the read-only manage view and the stream
+cache budget.
+
+## Phase 3: analytics and segments (heatmap, training load and statistics done 2026-11-20; segments and health open)
 
 Goal: parity with `/heatmap`, `/analysis`, `/stats`, `/records`, `/best-efforts/*`,
 `/segments`, `/segment/[id]`, `/health`, `/athlete`. Needs core H3.
@@ -134,7 +139,7 @@ Goal: parity with `/heatmap`, `/analysis`, `/stats`, `/records`, `/best-efforts/
 6. Fix the web's known unit inconsistency on the client side: all pace/speed honor the user's
    units.
 
-## Phase 4: account, social, notifications, sync status (1 to 2 weeks)
+## Phase 4: account, social, notifications, sync status (notifications, connections and sync status done 2026-11-20; social and deep links open)
 
 Goal: parity with the Account and Social groups for viewing, plus the small writes a viewer
 needs. Needs core H4.
@@ -175,7 +180,7 @@ on desktop).
 3. iOS: `ios.yml` extended with archive + TestFlight upload when the Apple secrets exist (user
    decision; needs the developer account).
 4. In-app update notice for GitHub-distributed Android builds (compare against the releases API
-   once per day, opt-out in settings).
+   once per day, opt-out in settings). DONE 2026-11-20.
 5. `make release V=v0.1.0` after Phase 2, `v0.2.0` after Phase 3, `v0.3.0` after Phase 4.
    `v1.0.0` and the Play Store listing (AAB, Play App Signing, data-safety form, screenshots) are
    a separate decision after the 0.x line has been used for a while.

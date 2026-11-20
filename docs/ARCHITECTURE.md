@@ -31,8 +31,9 @@ Non-goals for 1.0: web/wasm target, imports/uploads, admin pages, social writes,
   its status in HTTP trailers, which neither Ktor nor the iOS URLSession stack expose, while the
   Connect protocol carries status in the body (unary: JSON error body; streams: end-stream frame).
   This is the same choice connect-swift and connect-kotlin make for mobile. Same protos, same
-  stubs, same status codes, no second API. No server-streaming RPC is implemented yet; live
-  updates poll until the streaming items in the handover land.
+  stubs, same status codes, no second API. Live updates use the two server streams
+  (`StreamActivityEvents`, `StreamNotifications`), held only while a screen that follows them is
+  open; the connections page polls, because sync state has no stream.
 - **Auth for native clients:** cairn-core is an OAuth 2.1 authorization server (auth-code + PKCE
   S256, refresh-token rotation, RFC 7591 dynamic client registration, RFC 8414 discovery at
   `/.well-known/oauth-authorization-server`). Bearer `cairn_at_*` tokens are accepted by both the
@@ -207,8 +208,11 @@ Composable ─observes─▶ ViewModel ─calls─▶ UseCase ─▶ Repository 
    Redirect URIs: `org.opencairn.cairn:/oauth/callback` (mobile, also registered as an app link
    later), `http://127.0.0.1:8765/callback` (desktop; core requires an exact match, so a fixed
    port, see 7).
-4. Scopes requested: `activities:read profile:read social:read segments:read training:read`
-   (read-only by construction; a later write-capable release adds the write scopes).
+4. Scopes requested: the read scope of every family the app shows (`activities`, `profile`,
+   `social`, `segments`, `training`, `gear`, `notifications`, `connections`), the write scope of
+   exactly what it changes (`gear:write`, `training:write`, `profile:write`,
+   `notifications:write`) and `devices:read devices:write` for approving another device. Core
+   enforces them per procedure for OAuth tokens.
 5. Tokens: access 1 h, refresh 90 d with rotation. `SessionManager` refreshes proactively, dedups
    concurrent refreshes, and on an invalid refresh token clears the session and routes to login.
    Tokens live only in `TokenStore` (Keychain / Keystore-encrypted file / 0600 file).
