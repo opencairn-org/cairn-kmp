@@ -40,6 +40,7 @@ after 1.0.
 | cairn-kmp | cairn-core |
 |---|---|
 | 0.1.x | 0.6.0 or later |
+| 0.2.x | 0.6.0 or later; live updates need a release after 0.7.3 |
 
 ## Quickstart
 

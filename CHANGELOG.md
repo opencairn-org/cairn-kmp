@@ -8,6 +8,12 @@ Before 1.0.0 a minor bump may contain breaking changes.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-20
+
+Live updates need a cairn-core that streams: releases up to 0.7.3 answer every server stream with
+an error, so against them the screens refresh when opened but not on their own. Everything else
+works with cairn-core 0.6.0 or later.
+
 ### Added
 
 - Activity detail shows laps, time in heart-rate and power zones with aerobic decoupling, segment
@@ -115,7 +121,8 @@ GitHub release page and desktop packages for Linux, Windows and macOS.
 - App shell: bottom navigation (Overview, Activities, Settings) on Navigation 3, settings with
   account and server information and sign-out.
 
-[Unreleased]: https://github.com/opencairn-org/cairn-kmp/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/opencairn-org/cairn-kmp/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/opencairn-org/cairn-kmp/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/opencairn-org/cairn-kmp/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/opencairn-org/cairn-kmp/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/opencairn-org/cairn-kmp/releases/tag/v0.1.0

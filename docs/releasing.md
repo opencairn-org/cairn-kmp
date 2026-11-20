@@ -63,6 +63,7 @@ unzip -l app/android/build/outputs/apk/github/release/*.apk | grep classes   # d
 ## Android channels
 
 - **GitHub** (`github` flavor, `BuildConfig.DISTRIBUTION = "github"`): the APK on the release
-  page; the app checks the releases API for updates (planned).
+  page; release builds ask the releases API for a newer version once a day (opt-out in the
+  settings).
 - **Play** (`play` flavor): AAB with Play App Signing, after 1.0.0. Same application id, so
   users switching channels keep their data.
