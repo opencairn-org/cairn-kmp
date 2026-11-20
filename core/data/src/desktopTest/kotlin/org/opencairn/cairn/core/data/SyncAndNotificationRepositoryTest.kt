@@ -75,7 +75,7 @@ class SyncAndNotificationRepositoryTest {
                 assertEquals(90, strava.shortWindow?.used)
                 // A window without a limit carries no information.
                 assertNull(strava.dailyWindow)
-                assertEquals("Watch", garmin.displayName)
+                assertEquals("Garmin (Watch)", garmin.displayName)
                 assertEquals(SyncAccountStatus.AUTH_INVALID, garmin.status)
                 assertFalse(garmin.healthy)
                 cancelAndIgnoreRemainingEvents()

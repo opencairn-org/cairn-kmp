@@ -19,8 +19,10 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MonitorHeart
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PedalBike
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -46,9 +48,13 @@ import org.opencairn.cairn.ui.design.format.DateFormatters
 import org.opencairn.cairn.ui.design.resources.Res
 import org.opencairn.cairn.ui.design.resources.account_about
 import org.opencairn.cairn.ui.design.resources.account_athlete
+import org.opencairn.cairn.ui.design.resources.account_connections
+import org.opencairn.cairn.ui.design.resources.account_connections_hint
 import org.opencairn.cairn.ui.design.resources.account_gear
 import org.opencairn.cairn.ui.design.resources.account_gear_count
 import org.opencairn.cairn.ui.design.resources.account_no_value
+import org.opencairn.cairn.ui.design.resources.account_notifications
+import org.opencairn.cairn.ui.design.resources.account_notifications_unread
 import org.opencairn.cairn.ui.design.resources.account_records
 import org.opencairn.cairn.ui.design.resources.account_records_count
 import org.opencairn.cairn.ui.design.resources.account_settings
@@ -59,6 +65,7 @@ fun AccountScreen(
     viewModel: AccountViewModel,
     user: User?,
     dates: DateFormatters,
+    unread: Int,
     actions: AccountActions,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -66,6 +73,14 @@ fun AccountScreen(
         state.error?.let { StaleBanner(it, onRetry = viewModel::refresh) }
         LazyColumn(contentPadding = PaddingValues(bottom = 24.dp), modifier = Modifier.fillMaxSize()) {
             item { Header(user) }
+            item {
+                NavRow(
+                    Icons.Default.Notifications,
+                    stringResource(Res.string.account_notifications),
+                    if (unread > 0) stringResource(Res.string.account_notifications_unread, unread) else null,
+                    actions.onNotifications,
+                )
+            }
             item { AthleteCard(state, dates, actions.onAthlete) }
             item {
                 NavRow(
@@ -81,6 +96,14 @@ fun AccountScreen(
                     stringResource(Res.string.account_records),
                     stringResource(Res.string.account_records_count, state.recordCount),
                     actions.onRecords,
+                )
+            }
+            item {
+                NavRow(
+                    Icons.Default.Sync,
+                    stringResource(Res.string.account_connections),
+                    stringResource(Res.string.account_connections_hint),
+                    actions.onConnections,
                 )
             }
             item {
