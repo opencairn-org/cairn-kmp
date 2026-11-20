@@ -124,7 +124,8 @@ fun ActivityDetailScreen(
         activity,
         actions.onBack,
         scrollBehavior = scrollBehavior,
-        actions = { if (activity != null) ExportMenu(state.exporting, viewModel::export) },
+        // The server exports recorded data; an activity entered by hand has none.
+        actions = { if (activity?.hasStream == true) ExportMenu(state.exporting, viewModel::export) },
     ) { padding ->
         if (activity == null) {
             if (state.error != null) StaleBanner(state.error, onRetry = viewModel::refresh) else LoadingBox()

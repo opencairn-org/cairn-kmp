@@ -36,6 +36,8 @@ class ActivityDetailViewModelTest {
             vm.state.test {
                 val st = awaitItemWith { it.activity.value != null && !it.refreshing }
                 assertEquals("Ride a1", st.activity.value?.title)
+                // Entered by hand in this fixture: nothing recorded, so no export is offered.
+                assertEquals(false, st.activity.value?.hasStream)
                 assertEquals(3, st.insights.kudos?.count)
                 // Best efforts answered Unimplemented: an older server, not an error of the page.
                 assertNull(st.error)
