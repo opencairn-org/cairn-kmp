@@ -28,4 +28,12 @@ class FormattersTest {
         assertEquals("1h 05m", metric.duration(3900.seconds))
         assertEquals("5m 07s", metric.duration(307.seconds))
     }
+
+    @Test
+    fun clockAndPercent() {
+        assertEquals("4:05", metric.clock(245.seconds))
+        assertEquals("1:02:03", metric.clock(3723.seconds))
+        assertEquals("0:00", metric.clock(0.seconds))
+        assertEquals("75 %", metric.percent(0.75f))
+    }
 }

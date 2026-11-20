@@ -47,6 +47,18 @@ class Formatters(
         return if (h > 0) "${h}h ${m.toString().padStart(2, '0')}m" else "${m}m ${s.toString().padStart(2, '0')}s"
     }
 
+    /** Stopwatch form for tables: `4:05`, `1:02:03`. */
+    fun clock(d: Duration): String {
+        val total = d.inWholeSeconds
+        val h = total / 3600
+        val m = (total % 3600) / 60
+        val s = (total % 60).toString().padStart(2, '0')
+        return if (h > 0) "$h:${m.toString().padStart(2, '0')}:$s" else "$m:$s"
+    }
+
+    /** A share (0..1) as a whole percentage. */
+    fun percent(share: Float): String = "${(share * 100).roundToInt()} %"
+
     fun temperature(celsius: Double): String =
         when (units) {
             Units.METRIC -> "${celsius.roundToInt()} °C"

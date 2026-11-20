@@ -14,19 +14,31 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -36,6 +48,7 @@ import org.opencairn.cairn.core.domain.model.Activity
 import org.opencairn.cairn.core.domain.model.BestEffort
 import org.opencairn.cairn.core.domain.model.BestEffortMetric
 import org.opencairn.cairn.core.domain.model.BestEffortWindowKind
+import org.opencairn.cairn.core.domain.model.ExportFormat
 import org.opencairn.cairn.core.domain.model.Meters
 import org.opencairn.cairn.core.domain.model.MetersPerSecond
 import org.opencairn.cairn.core.domain.model.Units
@@ -65,6 +78,8 @@ import org.opencairn.cairn.ui.design.resources.detail_distance
 import org.opencairn.cairn.ui.design.resources.detail_elapsed_time
 import org.opencairn.cairn.ui.design.resources.detail_elevation_gain
 import org.opencairn.cairn.ui.design.resources.detail_elevation_loss
+import org.opencairn.cairn.ui.design.resources.detail_export
+import org.opencairn.cairn.ui.design.resources.detail_export_as
 import org.opencairn.cairn.ui.design.resources.detail_full_screen
 import org.opencairn.cairn.ui.design.resources.detail_gear
 import org.opencairn.cairn.ui.design.resources.detail_gear_unset
@@ -92,18 +107,57 @@ fun ActivityDetailScreen(
     formatters: Formatters,
     dates: DateFormatters,
     units: Units,
-    onBack: () -> Unit,
-    onOpenMap: () -> Unit,
-    onOpenStreams: () -> Unit,
+    actions: ActivityDetailActions,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val activity = state.activity.value
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-    ActivityPage(activity, onBack, scrollBehavior = scrollBehavior) { padding ->
+    // The download link is short-lived: hand it to the system as soon as it arrives, once.
+    val uriHandler = LocalUriHandler.current
+    LaunchedEffect(state.export) {
+        state.export?.let {
+            uriHandler.openUri(it.url)
+            viewModel.exportOpened()
+        }
+    }
+    ActivityPage(
+        activity,
+        actions.onBack,
+        scrollBehavior = scrollBehavior,
+        actions = { if (activity != null) ExportMenu(state.exporting, viewModel::export) },
+    ) { padding ->
         if (activity == null) {
             if (state.error != null) StaleBanner(state.error, onRetry = viewModel::refresh) else LoadingBox()
         } else {
-            DetailContent(viewModel, state, activity, formatters, dates, units, onOpenMap, onOpenStreams, padding)
+            DetailContent(viewModel, state, activity, formatters, dates, units, actions, padding)
+        }
+    }
+}
+
+@Composable
+private fun ExportMenu(
+    exporting: Boolean,
+    onExport: (ExportFormat) -> Unit,
+) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { open = true }, enabled = !exporting) {
+            if (exporting) {
+                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+            } else {
+                Icon(Icons.Default.FileDownload, contentDescription = stringResource(Res.string.detail_export))
+            }
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            ExportFormat.entries.forEach { format ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(Res.string.detail_export_as, format.name)) },
+                    onClick = {
+                        open = false
+                        onExport(format)
+                    },
+                )
+            }
         }
     }
 }
@@ -117,8 +171,7 @@ private fun DetailContent(
     formatters: Formatters,
     dates: DateFormatters,
     units: Units,
-    onOpenMap: () -> Unit,
-    onOpenStreams: () -> Unit,
+    actions: ActivityDetailActions,
     padding: androidx.compose.foundation.layout.PaddingValues,
 ) {
     Column(modifier = Modifier.padding(padding)) {
@@ -134,7 +187,7 @@ private fun DetailContent(
             val stream = state.stream.value
             if (stream != null && stream.hasGps) {
                 item {
-                    SectionWithAction(Res.string.detail_map, Res.string.detail_full_screen, onOpenMap)
+                    SectionWithAction(Res.string.detail_map, Res.string.detail_full_screen, actions.onOpenMap)
                     Box(modifier = Modifier.fillMaxWidth().height(260.dp).clip(RoundedCornerShape(12.dp))) {
                         RouteMap(stream, state.selectedIndex)
                     }
@@ -153,7 +206,7 @@ private fun DetailContent(
             }
             if (stream != null && stream.channels.isNotEmpty()) {
                 item {
-                    SectionWithAction(Res.string.detail_streams, Res.string.detail_see_all, onOpenStreams)
+                    SectionWithAction(Res.string.detail_streams, Res.string.detail_see_all, actions.onOpenStreams)
                     CombinedStreamChart(
                         stream,
                         units,
@@ -165,10 +218,11 @@ private fun DetailContent(
                 }
             }
             item { SecondaryStats(activity, formatters) }
+            insightSections(state.insights, activity.type.usesPace, formatters, dates, actions.onOpenActivity)
             val photos = state.attachments.value.orEmpty()
             if (photos.isNotEmpty()) {
                 item {
-                    Section(Res.string.detail_photos)
+                    SectionTitle(Res.string.detail_photos)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(photos, key = { it.id }) { p ->
                             AsyncImage(
@@ -183,18 +237,18 @@ private fun DetailContent(
             }
             val efforts = state.bestEfforts.value.orEmpty()
             if (efforts.isNotEmpty()) {
-                item { Section(Res.string.detail_best_efforts) }
+                item { SectionTitle(Res.string.detail_best_efforts) }
                 items(efforts, key = { it.id }) { e -> BestEffortRow(e, formatters) }
             }
             if (activity.description.isNotBlank()) {
                 item {
-                    Section(Res.string.detail_description)
+                    SectionTitle(Res.string.detail_description)
                     Text(activity.description, style = MaterialTheme.typography.bodyMedium)
                 }
             }
             if (activity.sources.isNotEmpty()) {
                 item {
-                    Section(Res.string.detail_sources)
+                    SectionTitle(Res.string.detail_sources)
                     activity.sources.forEach { s ->
                         val primary = if (s.id == activity.primaryStreamSourceId) " · primary" else ""
                         val imported = s.importedAt?.let { " · ${dates.date(it)}" }.orEmpty()
@@ -223,15 +277,6 @@ private fun SectionWithAction(
         Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
         TextButton(onClick = onAction) { Text(stringResource(action)) }
     }
-}
-
-@Composable
-private fun Section(title: StringResource) {
-    Text(
-        stringResource(title),
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(bottom = 8.dp),
-    )
 }
 
 @Composable
