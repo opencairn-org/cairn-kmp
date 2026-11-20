@@ -13,8 +13,13 @@ import org.opencairn.cairn.core.domain.model.BestEffort
 import org.opencairn.cairn.core.domain.model.Cached
 import org.opencairn.cairn.core.domain.model.ExportFile
 import org.opencairn.cairn.core.domain.model.ExportFormat
+import org.opencairn.cairn.core.domain.model.Heatmap
+import org.opencairn.cairn.core.domain.model.Stats
+import org.opencairn.cairn.core.domain.model.TrainingLoad
+import org.opencairn.cairn.core.domain.model.TrainingLoadRange
 import org.opencairn.cairn.core.domain.repository.ActivityInsightsRepository
 import org.opencairn.cairn.core.domain.repository.ActivityRepository
+import org.opencairn.cairn.core.domain.repository.AnalyticsRepository
 
 /** Wraps a value the way a warm cache would hand it out. */
 fun <T> cached(value: T): Flow<Cached<T>> = flowOf(Cached(value, NOW))
@@ -65,4 +70,17 @@ class SampleInsights : ActivityInsightsRepository {
         format: ExportFormat,
     ): Result<ExportFile> =
         Result.success(ExportFile("https://cairn.example/export", "ride.gpx", "application/gpx+xml"))
+}
+
+class SampleAnalytics : AnalyticsRepository {
+    override fun observeTrainingLoad(range: TrainingLoadRange): Flow<Cached<TrainingLoad>> = cached(sampleTrainingLoad)
+
+    override suspend fun refreshTrainingLoad(range: TrainingLoadRange) = done
+
+    override fun observeStats(): Flow<Cached<Stats>> = cached(sampleStats)
+
+    override suspend fun refreshStats() = done
+
+    override suspend fun heatmap(filter: ActivityFilter): Result<Heatmap> =
+        Result.failure(UnsupportedOperationException("the map is not part of the screenshots"))
 }

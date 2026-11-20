@@ -23,6 +23,7 @@ kotlin {
             implementation(projects.feature.login)
             implementation(projects.feature.overview)
             implementation(projects.feature.activities)
+            implementation(projects.feature.analysis)
             implementation(projects.feature.account)
             implementation(libs.navigation3.ui)
             implementation(libs.lifecycle.viewmodel.compose)
@@ -37,7 +38,6 @@ kotlin {
             // Screenshot tests render the screens off-screen with Compose's desktop test scene.
             implementation(libs.compose.ui.test)
             implementation(compose.desktop.currentOs)
-            implementation(projects.ui.charts)
         }
     }
 }

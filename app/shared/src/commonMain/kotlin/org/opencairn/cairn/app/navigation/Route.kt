@@ -9,6 +9,13 @@ sealed interface Route : NavKey {
 
     @Serializable data object Activities : Route
 
+    /** Training load, with statistics and the heatmap behind it. */
+    @Serializable data object Analysis : Route
+
+    @Serializable data object Stats : Route
+
+    @Serializable data object Heatmap : Route
+
     /** The account landing page behind the avatar in the bottom bar. */
     @Serializable data object Account : Route
 
@@ -59,4 +66,4 @@ sealed interface Route : NavKey {
 }
 
 /** The bottom-bar destinations, in order. */
-val topLevelRoutes: List<Route> = listOf(Route.Overview, Route.Activities, Route.Account)
+val topLevelRoutes: List<Route> = listOf(Route.Overview, Route.Activities, Route.Analysis, Route.Account)

@@ -23,14 +23,21 @@ import org.opencairn.cairn.core.domain.model.Privacy
 import org.opencairn.cairn.core.domain.model.SegmentEffort
 import org.opencairn.cairn.core.domain.model.SimilarActivities
 import org.opencairn.cairn.core.domain.model.SimilarActivity
+import org.opencairn.cairn.core.domain.model.Stats
+import org.opencairn.cairn.core.domain.model.Totals
+import org.opencairn.cairn.core.domain.model.TrainingLoad
+import org.opencairn.cairn.core.domain.model.TrainingLoadDay
 import org.opencairn.cairn.core.domain.model.UserCard
+import org.opencairn.cairn.core.domain.model.YearStat
 import org.opencairn.cairn.core.domain.model.ZoneBand
 import org.opencairn.cairn.core.domain.model.ZoneSummary
 import org.opencairn.cairn.ui.design.format.DateFormatters
 import org.opencairn.cairn.ui.design.format.Formatters
+import kotlin.math.sin
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
@@ -237,4 +244,33 @@ val sampleInsights =
                 Comment("c1", "That climb in under 46 minutes, chapeau!", NOW - 2.days, ann),
                 Comment("c2", "Next time I am coming along.", NOW - 1.days, ben),
             ),
+    )
+
+/** Half a year of training load: fitness climbing slowly, fatigue swinging around it week by week. */
+val sampleTrainingLoad: TrainingLoad =
+    run {
+        val days =
+            List(180) { i ->
+                val fitness = 48.0 + i * 0.09 + 3 * sin(i / 23.0)
+                val fatigue = fitness + 14 * sin(i / 3.4) + 4 * sin(i / 11.0)
+                val date = (NOW - (179 - i).days).toString().take(10)
+                TrainingLoadDay(date, fitness, fatigue, fitness - fatigue, 60.0 + 40 * sin(i / 2.0))
+            }
+        val last = days.last()
+        TrainingLoad(days, last.fitness, last.fatigue, last.form)
+    }
+
+val sampleStats =
+    Stats(
+        totals = Totals(309, Meters(11_840_000.0), 512.hours, Meters(142_300.0)),
+        bySport = listOf(Facet("ride", 212), Facet("run", 97)),
+        byDiscipline = emptyList(),
+        byYear =
+            listOf(
+                YearStat(2024, 61, Meters(2_310_000.0), 101.hours, Meters(27_400.0)),
+                YearStat(2025, 107, Meters(4_020_000.0), 176.hours, Meters(49_800.0)),
+                YearStat(2026, 141, Meters(5_510_000.0), 235.hours, Meters(65_100.0)),
+            ),
+        longestDistance = sampleActivity(12).copy(title = "Black Forest traverse"),
+        longestDuration = sampleActivity(11).copy(title = "Feldberg and back"),
     )
