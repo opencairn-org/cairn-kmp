@@ -2,9 +2,11 @@ package org.opencairn.cairn.core.network
 
 import cairn.v1.ActivityServiceClient
 import cairn.v1.AuthServiceClient
+import cairn.v1.ExternalAccountServiceClient
 import cairn.v1.GearServiceClient
 import cairn.v1.GrpcActivityServiceClient
 import cairn.v1.GrpcAuthServiceClient
+import cairn.v1.GrpcExternalAccountServiceClient
 import cairn.v1.GrpcGearServiceClient
 import cairn.v1.GrpcMetricsServiceClient
 import cairn.v1.GrpcNotificationServiceClient
@@ -34,6 +36,7 @@ class CairnApi(
     val metrics: MetricsServiceClient by lazy { GrpcMetricsServiceClient(grpc) }
     val stats: StatsServiceClient by lazy { GrpcStatsServiceClient(grpc) }
     val social: SocialServiceClient by lazy { GrpcSocialServiceClient(grpc) }
+    val externalAccounts: ExternalAccountServiceClient by lazy { GrpcExternalAccountServiceClient(grpc) }
 
     companion object {
         fun connect(

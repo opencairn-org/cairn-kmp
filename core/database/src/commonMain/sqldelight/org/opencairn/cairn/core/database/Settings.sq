@@ -1,0 +1,14 @@
+-- App-level settings that belong to the installation, not to an account (update check state).
+CREATE TABLE app_setting (
+  key TEXT NOT NULL PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
+put:
+INSERT OR REPLACE INTO app_setting(key, value) VALUES (?, ?);
+
+byKey:
+SELECT value FROM app_setting WHERE key = ?;
+
+remove:
+DELETE FROM app_setting WHERE key = ?;

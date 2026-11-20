@@ -10,6 +10,7 @@ kotlin {
             implementation(projects.core.network)
             implementation(projects.core.database)
             implementation(projects.core.auth)
+            implementation(libs.kotlinx.serialization.json)
         }
         commonTest.dependencies {
             implementation(libs.turbine)

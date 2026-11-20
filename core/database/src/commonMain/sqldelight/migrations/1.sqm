@@ -1,0 +1,5 @@
+-- 1 → 2: app-level settings (update check state).
+CREATE TABLE app_setting (
+  key TEXT NOT NULL PRIMARY KEY,
+  value TEXT NOT NULL
+);
