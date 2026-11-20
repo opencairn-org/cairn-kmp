@@ -188,8 +188,8 @@
     <string name="zones_basis_max">Against a maximum heart rate of %1$s bpm</string>
     <string name="zones_basis_ftp">Against an FTP of %1$s W</string>
     <string name="detail_decoupling">Aerobic decoupling</string>
-    <string name="detail_decoupling_coupled">%1$s %% by %2$s: heart rate held steady</string>
-    <string name="detail_decoupling_drift">%1$s %% by %2$s: heart rate drifted</string>
+    <string name="detail_decoupling_coupled">%1$s % by %2$s: heart rate held steady</string>
+    <string name="detail_decoupling_drift">%1$s % by %2$s: heart rate drifted</string>
     <string name="decoupling_basis_power">power</string>
     <string name="decoupling_basis_pace">pace</string>
     <string name="detail_segments">Segments</string>

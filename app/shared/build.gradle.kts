@@ -33,5 +33,21 @@ kotlin {
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
         }
+        getByName("desktopTest").dependencies {
+            // Screenshot tests render the screens off-screen with Compose's desktop test scene.
+            implementation(libs.compose.ui.test)
+            implementation(compose.desktop.currentOs)
+            implementation(projects.ui.charts)
+        }
     }
+}
+
+// Screenshot tests compare against the reference images under src/desktopTest/screenshots;
+// `make screenshots` (-Pcairn.screenshots=record) rewrites them instead.
+tasks.withType<Test>().configureEach {
+    val mode = providers.gradleProperty("cairn.screenshots").getOrElse("verify")
+    systemProperty("cairn.screenshots", mode)
+    systemProperty("java.awt.headless", "true")
+    inputs.dir(layout.projectDirectory.dir("src/desktopTest/screenshots")).withPathSensitivity(PathSensitivity.RELATIVE)
+    if (mode == "record") outputs.upToDateWhen { false }
 }

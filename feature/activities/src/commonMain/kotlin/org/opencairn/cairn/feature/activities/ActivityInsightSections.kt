@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -98,8 +97,12 @@ internal fun LazyListScope.insightSections(
     }
     insights.zones?.let { zones -> item(key = "zones") { Zones(zones, formatters) } }
     if (insights.segmentEfforts.isNotEmpty()) {
-        item(key = "segments") { SectionTitle(Res.string.detail_segments) }
-        items(insights.segmentEfforts, key = { "segment:${it.segmentId}:${it.elapsed}" }) { SegmentRow(it, formatters) }
+        item(key = "segments") {
+            Column {
+                Text(stringResource(Res.string.detail_segments), style = MaterialTheme.typography.titleMedium)
+                insights.segmentEfforts.forEach { SegmentRow(it, formatters) }
+            }
+        }
     }
     insights.similar?.let { similar ->
         item(key = "similar") { SimilarRoutes(similar, formatters, dates, onOpenActivity) }
