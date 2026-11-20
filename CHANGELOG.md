@@ -8,6 +8,13 @@ Before 1.0.0 a minor bump may contain breaking changes.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-20
+
+### Changed
+
+- Dependency updates: Ktor 3.6.1, Wire 7.2.2, kotlinx-serialization 1.13.0, Metro 1.6.0 and the
+  Android Gradle Plugin 9.5.1; built with Gradle 9.9.2.
+
 ## [0.1.1] - 2026-10-30
 
 ### Added
@@ -68,6 +75,7 @@ GitHub release page and desktop packages for Linux, Windows and macOS.
 - App shell: bottom navigation (Overview, Activities, Settings) on Navigation 3, settings with
   account and server information and sign-out.
 
-[Unreleased]: https://github.com/opencairn-org/cairn-kmp/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/opencairn-org/cairn-kmp/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/opencairn-org/cairn-kmp/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/opencairn-org/cairn-kmp/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/opencairn-org/cairn-kmp/releases/tag/v0.1.0
