@@ -46,7 +46,10 @@ make desktop        # run the desktop app against your cairn-core
    (`POST /api/pats`), upload GPX files (`POST /api/activities/upload`) or manual activities
    (`POST /api/activities/manual`).
 3. Headless: `make e2e CAIRN_E2E_BASE_URL=http://localhost:8080 CAIRN_E2E_TOKEN=cairn_pat_…`
-   runs the real app graph (sign-in, overview, search, detail, cache) against it.
+   runs the real app graph (sign-in, overview, search, detail, insights, analytics, connections,
+   notifications, cache) against it and reads the activity event stream for a few seconds; a
+   stream the server refuses or ends fails the run. `CAIRN_E2E_LIVE_SECONDS=40` holds the stream
+   longer, to create an activity meanwhile and see the change arrive.
 4. Emulator: `adb reverse tcp:8080 tcp:8080` (and `tcp:9000` for MinIO content), install the
    debug APK (cleartext to localhost is allowed in debug builds only) and enter
    `http://localhost:8080` as the server. Both the browser sign-in (Custom Tab, core's consent

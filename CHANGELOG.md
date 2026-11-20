@@ -15,8 +15,8 @@ Before 1.0.0 a minor bump may contain breaking changes.
   them, kudos and comments (`ListLaps`, `GetActivityZones`, `ListActivitySegmentEfforts`,
   `ListSimilarActivities`, `ListKudos`, `ListComments`). Each section appears when the activity has
   the data.
-- Export from the activity page as GPX, TCX or FIT: the app asks the server for a signed link
-  (`ExportActivity`) and hands it to the system.
+- Export from the activity page as GPX, TCX or FIT, for activities with recorded data: the app
+  asks the server for a signed link (`ExportActivity`) and hands it to the system.
 - Analysis tab: training load (fitness, fatigue, form) over 3 months, 6 months, a year or
   everything with a crosshair readout, lifetime statistics by year and sport with the longest
   activities, and a heatmap of every GPS track per sport (`GetTrainingLoad`, `GetStats`,

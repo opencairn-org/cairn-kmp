@@ -1,9 +1,13 @@
 package org.opencairn.cairn.desktop
 
 import app.cash.turbine.test
+import cairn.v1.StreamActivityEventsRequest
 import dev.zacsweers.metro.createGraphFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.opencairn.cairn.app.di.AppGraph
 import org.opencairn.cairn.app.di.PlatformContext
@@ -52,7 +56,7 @@ class EndToEndTest {
 
     @Test
     fun signInWithTokenThenReadEverythingTheScreensNeed() =
-        runTest(timeout = 60.seconds) {
+        runTest(timeout = 120.seconds) {
             if (baseUrl.isNullOrBlank() || token.isNullOrBlank()) {
                 println("skipped: CAIRN_E2E_BASE_URL / CAIRN_E2E_TOKEN not set")
                 return@runTest
@@ -159,9 +163,22 @@ class EndToEndTest {
             )
             cancelAndIgnoreRemainingEvents()
         }
-        val file = g.insightsRepository.export(id, ExportFormat.GPX).getOrThrow()
-        println("export: ${file.filename} (${file.contentType})")
-        assertTrue(file.url.startsWith("http"))
+        // The server exports recorded data only; the app offers export on the same condition.
+        val recorded =
+            g.activityRepository
+                .observeActivity(id)
+                .first()
+                .value
+                ?.hasStream == true
+        if (recorded) {
+            val file = g.insightsRepository.export(id, ExportFormat.GPX).getOrThrow()
+            println("export: ${file.filename} (${file.contentType})")
+            assertTrue(file.url.startsWith("http"))
+        } else {
+            val refusal = g.insightsRepository.export(id, ExportFormat.GPX).exceptionOrNull()
+            println("export: not offered, the activity has no stream (server says: ${refusal?.message})")
+            assertNotNull(refusal)
+        }
     }
 
     private suspend fun checkAnalytics(g: AppGraph) {
@@ -202,9 +219,29 @@ class EndToEndTest {
         }
     }
 
-    /** The stream must open and stay open: no event is expected, a refusal or an early end would fail here. */
+    /**
+     * The activity stream must open and stay open. The app's own live updates retry quietly when
+     * a stream fails, so this reads the stream itself: an end or an error within the hold time
+     * fails the run. No event is expected unless something changes on the server meanwhile;
+     * CAIRN_E2E_LIVE_SECONDS holds longer (35 or more also sees the server's 30 s heartbeat).
+     */
     private suspend fun checkLiveStream(g: AppGraph) {
-        val early = withTimeoutOrNull(3.seconds) { g.liveEvents.activityChanges.first() }
-        println("live: stream held for 3 s, event=$early")
+        val hold = (System.getenv("CAIRN_E2E_LIVE_SECONDS")?.toIntOrNull() ?: 3).seconds
+        withContext(Dispatchers.Default) {
+            coroutineScope {
+                val call =
+                    g.session
+                        .api()
+                        .activities
+                        .StreamActivityEvents()
+                val events = call.executeIn(this, StreamActivityEventsRequest())
+                val first = withTimeoutOrNull(hold) { events.receiveCatching() }
+                call.cancel()
+                first?.exceptionOrNull()?.let { throw AssertionError("the activity stream failed: ${it.message}", it) }
+                check(first == null || !first.isClosed) { "the activity stream ended by itself" }
+                val event = first?.getOrNull()
+                println("live: stream held for up to $hold, event=${event?.type} ${event?.activity_id.orEmpty()}")
+            }
+        }
     }
 }

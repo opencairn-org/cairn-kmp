@@ -106,6 +106,9 @@ data class Activity(
     val updatedAt: Instant?,
 ) {
     val displayTitle: String get() = title.ifBlank { "${type.wire.replaceFirstChar { it.uppercase() }} activity" }
+
+    /** Whether a source recorded samples (track, heart rate, …); manual entries have only the summary. */
+    val hasStream: Boolean get() = primaryStreamSourceId.isNotBlank()
 }
 
 /** Mirrors cairn.v1.ActivityFilter; every field optional, "any" when unset. */

@@ -106,7 +106,8 @@ fun sampleActivity(
         startLng = null,
         mapImageUrl = null,
         mapImageEtag = "",
-        primaryStreamSourceId = "",
+        // Recorded, so the page offers export; the screenshots have no samples for it, hence no map or chart.
+        primaryStreamSourceId = "source-$index",
         sources = emptyList(),
         updatedAt = null,
     )
