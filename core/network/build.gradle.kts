@@ -13,6 +13,8 @@ wire {
         rpcRole = "client"
         rpcCallStyle = "suspending"
         javaInterop = false
+        // Server streams get their own call type (one request, a channel of responses).
+        explicitStreamingCalls = true
     }
 }
 
