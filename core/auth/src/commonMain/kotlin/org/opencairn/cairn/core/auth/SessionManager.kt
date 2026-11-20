@@ -35,7 +35,7 @@ import kotlin.concurrent.Volatile
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
-/** Read-only scopes the viewer requests (core's scope families); a write-capable release adds `:write`. */
+/** Read scopes for everything the app shows (core's scope families). */
 val READ_SCOPES =
     listOf(
         "activities:read",
@@ -48,11 +48,18 @@ val READ_SCOPES =
         "connections:read",
     )
 
+/**
+ * Write scopes for exactly what the app changes: gear, the athlete's dated values, format and
+ * unit preferences, and the read state of notifications. Without them cairn-core refuses those
+ * calls for OAuth sign-ins (a personal access token carries the user's full access).
+ */
+val WRITE_SCOPES = listOf("gear:write", "training:write", "profile:write", "notifications:write")
+
 /** Approving sign-ins of other devices (RFC 8628) from this one. */
 val DEVICE_SCOPES = listOf("devices:read", "devices:write")
 
 /** Everything the app asks for at registration and sign-in. */
-val APP_SCOPES = READ_SCOPES + DEVICE_SCOPES
+val APP_SCOPES = READ_SCOPES + WRITE_SCOPES + DEVICE_SCOPES
 
 /**
  * Owns sign-in state: servers, the active account, its tokens (in the [SecretStore]) and the

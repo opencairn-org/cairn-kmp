@@ -321,6 +321,8 @@ class SessionManagerTest {
             val body = (registration.body as OutgoingContent.ByteArrayContent).bytes().decodeToString()
             assertTrue(body.contains(DEVICE_CODE_GRANT), body)
             assertTrue(body.contains("devices:write"), body)
+            // The edits the app offers (gear, athlete values, preferences, read state) need write scopes.
+            WRITE_SCOPES.forEach { assertTrue(body.contains(it), "$it missing in $body") }
         }
 
     @Test
