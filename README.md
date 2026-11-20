@@ -22,9 +22,18 @@ notes list the `cosign verify-blob` and `gh attestation verify` commands.
 
 ## What the app shows
 
-Overview with totals and the home feed, the activity list with filters, activity detail with map,
-streams and best efforts, and the account area: athlete profile with dated values, gear, personal
-records, settings and about. Imports and edits beyond these stay in the web UI until after 1.0.
+- **Overview:** totals, this and last week, the home feed, and a line about syncing when a service
+  needs attention or imports are running.
+- **Activities:** the list with filters, and the activity page with map, streams, laps, zones,
+  segment efforts, the history of the same route, best efforts, photos, kudos and comments, and
+  export as GPX, TCX or FIT.
+- **Analysis:** training load (fitness, fatigue, form), lifetime statistics and the heatmap.
+- **Account:** notifications, athlete profile with dated values, gear, personal records,
+  connections with their sync state, settings and about.
+
+Screens render from the local cache first and follow the server while they are open. Imports,
+connecting services and edits beyond gear, athlete values and preferences stay in the web UI until
+after 1.0.
 
 ## Compatibility
 

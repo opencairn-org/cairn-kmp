@@ -52,6 +52,20 @@ make desktop        # run the desktop app against your cairn-core
    `http://localhost:8080` as the server. Both the browser sign-in (Custom Tab, core's consent
    page, redirect back by custom scheme) and the token sign-in work this way.
 
+## Screenshot tests
+
+`app/shared/src/desktopTest/kotlin/.../screenshots` renders screens off-screen from fake
+repositories at phone and desktop size and compares them with the PNGs in
+`app/shared/src/desktopTest/screenshots`. They run with the other desktop tests (`make test`,
+`make check`) and need no display.
+
+- A screen you changed on purpose: `make screenshots`, look at the changed PNGs, commit them with
+  the code. A failed comparison leaves the new render in `app/shared/build/reports/screenshots`.
+- A new screen: add a test next to the others (sample data lives beside them); a missing reference
+  fails the test until it is recorded.
+- Text is drawn with a bundled test font and locale, time zone and clock are fixed, so a picture
+  depends on the code alone. Maps and remote images are not rendered.
+
 ## Architecture
 
 Read `docs/ARCHITECTURE.md` and the ADRs in `docs/adr/` first. The short version:
