@@ -2,7 +2,7 @@
 # Kotlin, Metro and the Compose plugin are bumped together (compiler-plugin compatibility).
 [versions]
 kotlin = "2.4.21"
-agp = "9.5.1"
+agp = "9.5.2"
 compose = "1.12.2"
 metro = "1.6.0"
 sqldelight = "2.4.1"
@@ -29,7 +29,7 @@ turbine = "1.2.1"
 androidx-activity = "1.13.0"
 androidx-core = "1.19.1"
 androidx-browser = "1.10.0"
-spotless = "8.11.0"
+spotless = "8.12.0"
 ktlint = "1.8.0"
 detekt = "2.0.0-alpha.6"
 kover = "0.9.11"
